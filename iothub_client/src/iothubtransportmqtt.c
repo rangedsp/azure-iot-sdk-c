@@ -77,6 +77,11 @@ static void IoTHubTransportMqtt_Unsubscribe_DeviceTwin(IOTHUB_DEVICE_HANDLE hand
     IoTHubTransport_MQTT_Common_Unsubscribe_DeviceTwin(handle);
 }
 
+static void IoTHubTransportMqtt_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, uint16_t methodId, const unsigned char* response, size_t resp_size, int status_response)
+{
+    IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, methodId, response, resp_size, status_response);
+}
+
 static IOTHUB_PROCESS_ITEM_RESULT IoTHubTransportMqtt_ProcessItem(TRANSPORT_LL_HANDLE handle, IOTHUB_IDENTITY_TYPE item_type, IOTHUB_IDENTITY_INFO* iothub_item)
 {
     return IoTHubTransport_MQTT_Common_ProcessItem(handle, item_type, iothub_item);
@@ -129,6 +134,7 @@ static TRANSPORT_PROVIDER myfunc =
 {
     IoTHubTransportMqtt_Subscribe_DeviceMethod,     /*pfIoTHubTransport_Subscribe_DeviceMethod IoTHubTransport_Subscribe_DeviceMethod;*/
     IoTHubTransportMqtt_Unsubscribe_DeviceMethod,   /*pfIoTHubTransport_Unsubscribe_DeviceMethod IoTHubTransport_Unsubscribe_DeviceMethod;*/
+    IoTHubTransportMqtt_DeviceMethod_Response,      /*pfIoTHubTransport_DeviceMethod_Response IoTHubTransport_DeviceMethod_Response;*/
     IoTHubTransportMqtt_Subscribe_DeviceTwin,       /*pfIoTHubTransport_Subscribe_DeviceTwin IoTHubTransport_Subscribe_DeviceTwin;*/
     IoTHubTransportMqtt_Unsubscribe_DeviceTwin,     /*pfIoTHubTransport_Unsubscribe_DeviceTwin IoTHubTransport_Unsubscribe_DeviceTwin;*/
     IoTHubTransportMqtt_ProcessItem,                /*pfIoTHubTransport_ProcessItem IoTHubTransport_ProcessItem;*/

@@ -54,10 +54,12 @@ extern "C"
     typedef IOTHUB_PROCESS_ITEM_RESULT(*pfIoTHubTransport_ProcessItem)(TRANSPORT_LL_HANDLE handle, IOTHUB_IDENTITY_TYPE item_type, IOTHUB_IDENTITY_INFO* iothub_item);
     typedef int(*pfIoTHubTransport_Subscribe_DeviceMethod)(IOTHUB_DEVICE_HANDLE handle);
     typedef void(*pfIoTHubTransport_Unsubscribe_DeviceMethod)(IOTHUB_DEVICE_HANDLE handle);
+    typedef void(*pfIoTHubTransport_DeviceMethod_Response)(IOTHUB_DEVICE_HANDLE handle, uint32_t methodId, const unsigned char* response, size_t resp_size, int status_response);
 
 #define TRANSPORT_PROVIDER_FIELDS                                                   \
 pfIoTHubTransport_Subscribe_DeviceMethod IoTHubTransport_Subscribe_DeviceMethod;    \
 pfIoTHubTransport_Unsubscribe_DeviceMethod IoTHubTransport_Unsubscribe_DeviceMethod;\
+pfIoTHubTransport_DeviceMethod_Response IoTHubTransport_DeviceMethod_Response;      \
 pfIoTHubTransport_Subscribe_DeviceTwin IoTHubTransport_Subscribe_DeviceTwin;        \
 pfIoTHubTransport_Unsubscribe_DeviceTwin IoTHubTransport_Unsubscribe_DeviceTwin;    \
 pfIoTHubTransport_ProcessItem IoTHubTransport_ProcessItem;                          \

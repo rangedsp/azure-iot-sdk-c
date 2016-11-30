@@ -1153,24 +1153,14 @@ static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* call
                 }
                 else
                 {
-                    BUFFER_HANDLE result_buffer;
                     if (retrieve_device_method_rid_info(topic_resp, method_name, &request_id) != 0)
-                    {
-                        LogError("Failure: retrieve device topic info");
-                    }
-                    else if ((result_buffer = BUFFER_new()) == NULL)
                     {
                         LogError("Failure: retrieve device topic info");
                     }
                     else
                     {
                         const APP_PAYLOAD* payload = mqttmessage_getApplicationMsg(msgHandle);
-                        int status_code = IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, result_buffer);
-                        if (publish_device_method_message(transportData, status_code, request_id, result_buffer) != 0)
-                        {
-                            LogError("Failure: publishing device method response");
-                        }
-                        BUFFER_delete(result_buffer);
+                        IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, request_id);
                     }
                     STRING_delete(method_name);
                 }
@@ -2153,6 +2143,18 @@ void IoTHubTransport_MQTT_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
     else
     {
         LogError("Invalid argument to unsubscribe (NULL).");
+    }
+}
+
+void IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, uint16_t methodId, const unsigned char* response, size_t resp_size, int status_response)
+{
+    PMQTTTRANSPORT_HANDLE_DATA transport_data = (PMQTTTRANSPORT_HANDLE_DATA)handle;
+    if (transport_data != NULL)
+    {
+        //if (publish_device_method_message(transportData, status_code, request_id, result_buffer) != 0)
+        {
+            LogError("Failure: publishing device method response");
+        }
     }
 }
 

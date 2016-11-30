@@ -631,7 +631,7 @@ int iothubtransportamqp_methods_subscribe(IOTHUBTRANSPORT_AMQP_METHODS_HANDLE io
 						iothubtransport_amqp_methods_handle->receiver_link = link_create(session_handle, STRING_c_str(requests_link_name), role_receiver, receiver_source, receiver_target);
 						if (iothubtransport_amqp_methods_handle->receiver_link == NULL)
 						{
-							/* Codes_SRS_IOTHUBTRANSPORT_AMQP_METHODS_01_020: [ If creating the receiver link fails `iothubtransportamqp_methods_subscribe` shall fail and return a non-zero value. ]*/
+							/* Codes_SRS_IOTHUBTRANSPORT_AMQP_METHODS_01_020: [ If creating the receiver link  fails `iothubtransportamqp_methods_subscribe` shall fail and return a non-zero value. ]*/
 							LogError("Cannot create receiver link");
 							result = __LINE__;
 						}
