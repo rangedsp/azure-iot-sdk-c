@@ -88,6 +88,7 @@ if(${use_amqp})
         ${iothub_client_ll_transport_c_files}
         ./src/iothubtransport_amqp_common.c
         ./src/iothubtransportamqp_auth.c
+        ./src/iothubtransport_amqp_connection.c
         ./src/uamqp_messaging.c
     )
 
@@ -102,6 +103,7 @@ if(${use_amqp})
         ${iothub_client_ll_transport_h_files}
         ./inc/iothubtransport_amqp_common.h
         ./inc/iothubtransportamqp_auth.h
+        ./inc/iothubtransport_amqp_connection.h
         ./inc/uamqp_messaging.h
     )
 
