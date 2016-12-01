@@ -42,9 +42,11 @@ static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, v
     IoTHubMessage_Destroy(messageHandle);
 }
 
-static void incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, uint16_t method_id, void* userContextCallback)
+static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID_HANDLE method_id, void* userContextCallback)
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = (IOTHUB_CLIENT_LL_HANDLE)userContextCallback;
+
+    int result;
 
     printf("\r\nDevice Method called\r\n");
     printf("Device Method name:    %s\r\n", method_name);
@@ -69,6 +71,10 @@ static void incoming_method_callback(const char* method_name, const unsigned cha
     size_t resp_length = strlen(RESPONSE_STRING);
 
     IoTHubClient_LL_DeviceMethodResponse(iotHubClientHandle, method_id, (unsigned char*)RESPONSE_STRING, resp_length, status);
+
+    result = 0;
+
+    return result;
 }
 
 static int DeviceMethodCallback(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* resp_size, void* userContextCallback)

@@ -1160,7 +1160,7 @@ static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* call
                     else
                     {
                         const APP_PAYLOAD* payload = mqttmessage_getApplicationMsg(msgHandle);
-                        IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, request_id);
+                        IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, (METHOD_ID_HANDLE)&request_id);
                     }
                     STRING_delete(method_name);
                 }
@@ -2146,8 +2146,12 @@ void IoTHubTransport_MQTT_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
     }
 }
 
-void IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, uint16_t methodId, const unsigned char* response, size_t resp_size, int status_response)
+int IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
+    (void)methodId;
+    (void)response;
+    (void)resp_size;
+    (void)status_response;
     PMQTTTRANSPORT_HANDLE_DATA transport_data = (PMQTTTRANSPORT_HANDLE_DATA)handle;
     if (transport_data != NULL)
     {
@@ -2156,6 +2160,7 @@ void IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE hand
             LogError("Failure: publishing device method response");
         }
     }
+    return __LINE__;
 }
 
 int IoTHubTransport_MQTT_Common_Subscribe(IOTHUB_DEVICE_HANDLE handle)

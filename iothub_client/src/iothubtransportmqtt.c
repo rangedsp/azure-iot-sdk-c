@@ -77,9 +77,9 @@ static void IoTHubTransportMqtt_Unsubscribe_DeviceTwin(IOTHUB_DEVICE_HANDLE hand
     IoTHubTransport_MQTT_Common_Unsubscribe_DeviceTwin(handle);
 }
 
-static void IoTHubTransportMqtt_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, uint16_t methodId, const unsigned char* response, size_t resp_size, int status_response)
+static int IoTHubTransportMqtt_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
-    IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, methodId, response, resp_size, status_response);
+    return IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, methodId, response, resp_size, status_response);
 }
 
 static IOTHUB_PROCESS_ITEM_RESULT IoTHubTransportMqtt_ProcessItem(TRANSPORT_LL_HANDLE handle, IOTHUB_IDENTITY_TYPE item_type, IOTHUB_IDENTITY_INFO* iothub_item)

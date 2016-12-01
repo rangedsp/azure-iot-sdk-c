@@ -453,8 +453,6 @@ static void on_methods_error(void* context)
 
 static int on_method_request_received(void* context, const char* method_name, const unsigned char* request, size_t request_size, IOTHUBTRANSPORT_AMQP_METHOD_HANDLE method_handle)
 {
-    int result;
-
     AMQP_TRANSPORT_DEVICE_STATE* device_state = (AMQP_TRANSPORT_DEVICE_STATE*)context;
 
     /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_017: [ `on_methods_request_received` shall call the `IoTHubClient_LL_DeviceMethodComplete` passing the method name, request buffer and size and the newly created BUFFER handle. ]*/
@@ -463,11 +461,11 @@ static int on_method_request_received(void* context, const char* method_name, co
     IoTHubClient_LL_DeviceMethodComplete(device_state->iothub_client_handle, method_name, request, request_size, (void*)method_handle);
 
     /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_020: [ The response bytes shall be obtained by calling `BUFFER_u_char`. ]*/
-    const unsigned char* response_payload = BUFFER_u_char(response_buffer);
+    //const unsigned char* response_payload = BUFFER_u_char(response_buffer);
 
     /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_021: [ The response size shall be obtained by calling `BUFFER_length`. ]*/
-    size_t response_size = BUFFER_length(response_buffer);
-
+    //size_t response_size = BUFFER_length(response_buffer);
+    return 0;
 }
 
 static int subscribe_methods(AMQP_TRANSPORT_DEVICE_STATE* deviceState)
@@ -1454,18 +1452,36 @@ void IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
     }
 }
 
-void IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
+int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
+    (void)methodId;
+    (void)response;
+    (void)resp_size;
+    (void)status_response;
+
+    int result;
+
     AMQP_TRANSPORT_DEVICE_STATE* device_state = (AMQP_TRANSPORT_DEVICE_STATE*)handle;
     if (device_state != NULL)
     {
+        IOTHUBTRANSPORT_AMQP_METHOD_HANDLE saved_handle = (IOTHUBTRANSPORT_AMQP_METHOD_HANDLE)methodId;
         /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_019: [ `on_methods_request_received` shall call `iothubtransportamqp_methods_respond` passing to it the `method_handle` argument, the response bytes, response size and the status code. ]*/
-        if (iothubtransportamqp_methods_respond(device_state->methods_handle, response, resp_size, status_response) != 0)
+        if (iothubtransportamqp_methods_respond(saved_handle, response, resp_size, status_response) != 0)
         {
             /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_029: [ If `iothubtransportamqp_methods_respond` fails, `on_methods_request_received` shall return a non-zero value. ]*/
             LogError("iothubtransportamqp_methods_respond failed");
+            result = __LINE__;
+        }
+        else
+        {
+            result = 0;
         }
     }
+    else
+    {
+        result = __LINE__;
+    }
+    return result;
 }
 
 IOTHUB_CLIENT_RESULT IoTHubTransport_AMQP_Common_GetSendStatus(IOTHUB_DEVICE_HANDLE handle, IOTHUB_CLIENT_STATUS *iotHubClientStatus)

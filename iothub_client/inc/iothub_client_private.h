@@ -32,8 +32,6 @@ extern "C"
 #define API_VERSION "?api-version=2016-11-14"
 #define REJECT_QUERY_PARAMETER "&reject"
 
-typedef void* METHOD_ID_HANDLE;
-
 MOCKABLE_FUNCTION(, void, IoTHubClient_LL_SendComplete, IOTHUB_CLIENT_LL_HANDLE, handle, PDLIST_ENTRY, completed, IOTHUB_CLIENT_CONFIRMATION_RESULT, result);
 MOCKABLE_FUNCTION(, void, IoTHubClient_LL_ReportedStateComplete, IOTHUB_CLIENT_LL_HANDLE, handle, uint32_t, item_id, int, status_code);
 MOCKABLE_FUNCTION(, IOTHUBMESSAGE_DISPOSITION_RESULT, IoTHubClient_LL_MessageCallback, IOTHUB_CLIENT_LL_HANDLE,  handle, IOTHUB_MESSAGE_HANDLE, message);
