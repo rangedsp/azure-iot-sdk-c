@@ -506,7 +506,7 @@ extern "C"
      MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClient_LL_SetDeviceMethodCallback, IOTHUB_CLIENT_LL_HANDLE, iotHubClientHandle, IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC, deviceMethodCallback, void*, userContextCallback);
 
      /**
-     * @brief	This API sets callback for and async cloud to device method call.
+     * @brief	This API sets callback for async cloud to device method call.
      *
      * @param	iotHubClientHandle		        The handle created by a call to the create function.
      * @param	inboundDeviceMethodCallback     The callback which will be called by IoTHub.
@@ -519,7 +519,7 @@ extern "C"
 
 
      /**
-     * @brief	This API response to a asnyc method callback identified the method_id.
+     * @brief	This API responses to a asnyc method callback identified the methodId.
      *
      * @param	iotHubClientHandle      The handle created by a call to the create function.
      * @param	methodId                The methodId of the Device Method callback.
