@@ -835,7 +835,7 @@ static int publish_mqtt_telemetry_msg(PMQTTTRANSPORT_HANDLE_DATA transport_data,
     return result;
 }
 
-static int publish_device_method_message(MQTTTRANSPORT_HANDLE_DATA* transport_data, int status_code, uint16_t request_id, BUFFER_HANDLE response)
+static int publish_device_method_message(MQTTTRANSPORT_HANDLE_DATA* transport_data, int status_code, uint16_t request_id, const unsigned char* response, size_t resp_size)
 {
     int result;
     uint16_t packet_id = get_next_packet_id(transport_data);
@@ -848,7 +848,7 @@ static int publish_device_method_message(MQTTTRANSPORT_HANDLE_DATA* transport_da
     }
     else
     {
-        MQTT_MESSAGE_HANDLE mqtt_get_msg = mqttmessage_create(packet_id, STRING_c_str(msg_topic), DELIVER_AT_MOST_ONCE, BUFFER_u_char(response), BUFFER_length(response));
+        MQTT_MESSAGE_HANDLE mqtt_get_msg = mqttmessage_create(packet_id, STRING_c_str(msg_topic), DELIVER_AT_MOST_ONCE, response, resp_size);
         if (mqtt_get_msg == NULL)
         {
             LogError("Failed constructing mqtt message.");
@@ -1160,7 +1160,7 @@ static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* call
                     else
                     {
                         const APP_PAYLOAD* payload = mqttmessage_getApplicationMsg(msgHandle);
-                        IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, (METHOD_ID_HANDLE)&request_id);
+                        IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, (METHOD_ID)&request_id);
                     }
                     STRING_delete(method_name);
                 }
@@ -2146,21 +2146,31 @@ void IoTHubTransport_MQTT_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
     }
 }
 
-int IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
+int IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t respSize, int status)
 {
-    (void)methodId;
-    (void)response;
-    (void)resp_size;
-    (void)status_response;
-    PMQTTTRANSPORT_HANDLE_DATA transport_data = (PMQTTTRANSPORT_HANDLE_DATA)handle;
+    int result;
+    MQTTTRANSPORT_HANDLE_DATA* transport_data = (MQTTTRANSPORT_HANDLE_DATA*)handle;
     if (transport_data != NULL)
     {
-        //if (publish_device_method_message(transportData, status_code, request_id, result_buffer) != 0)
+        /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_042: [ IoTHubTransport_MQTT_Common_DeviceMethod_Response shall publish an mqtt message for the device method response. ] */
+        uint16_t request_id = (*(uint16_t*)methodId);
+        if (publish_device_method_message(transport_data, status, request_id, response, respSize) != 0)
         {
+            /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_051: [ If any error is encountered, IoTHubTransport_MQTT_Common_DeviceMethod_Response shall return a non-zero value. ] */
             LogError("Failure: publishing device method response");
+            result = __LINE__;
+        }
+        else
+        {
+            result = 0;
         }
     }
-    return __LINE__;
+    else
+    {
+        /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_041: [ If the parameter handle is NULL than IoTHubTransport_MQTT_Common_DeviceMethod_Response shall return a non-zero value. ] */
+        result = __LINE__;
+    }
+    return result;
 }
 
 int IoTHubTransport_MQTT_Common_Subscribe(IOTHUB_DEVICE_HANDLE handle)

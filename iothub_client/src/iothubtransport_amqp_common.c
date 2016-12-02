@@ -1452,7 +1452,7 @@ void IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
     }
 }
 
-int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
+int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
     (void)methodId;
     (void)response;

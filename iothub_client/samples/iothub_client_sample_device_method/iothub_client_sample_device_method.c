@@ -42,7 +42,7 @@ static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, v
     IoTHubMessage_Destroy(messageHandle);
 }
 
-static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID_HANDLE method_id, void* userContextCallback)
+static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = (IOTHUB_CLIENT_LL_HANDLE)userContextCallback;
 

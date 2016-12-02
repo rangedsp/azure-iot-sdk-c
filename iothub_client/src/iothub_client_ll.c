@@ -410,6 +410,7 @@ static void setTransportProtocol(IOTHUB_CLIENT_LL_HANDLE_DATA* handleData, TRANS
     handleData->IoTHubTransport_Unsubscribe_DeviceTwin = protocol->IoTHubTransport_Unsubscribe_DeviceTwin;
     handleData->IoTHubTransport_Subscribe_DeviceMethod = protocol->IoTHubTransport_Subscribe_DeviceMethod;
     handleData->IoTHubTransport_Unsubscribe_DeviceMethod = protocol->IoTHubTransport_Unsubscribe_DeviceMethod;
+    handleData->IoTHubTransport_DeviceMethod_Response = protocol->IoTHubTransport_DeviceMethod_Response;
 }
 
 IOTHUB_CLIENT_LL_HANDLE IoTHubClient_LL_Create(const IOTHUB_CLIENT_CONFIG* config)
@@ -1005,12 +1006,14 @@ void IoTHubClient_LL_SendComplete(IOTHUB_CLIENT_LL_HANDLE handle, PDLIST_ENTRY c
     }
 }
 
-void IoTHubClient_LL_DeviceMethodComplete(IOTHUB_CLIENT_LL_HANDLE handle, const char* method_name, const unsigned char* payLoad, size_t size, METHOD_ID_HANDLE response_id)
+int IoTHubClient_LL_DeviceMethodComplete(IOTHUB_CLIENT_LL_HANDLE handle, const char* method_name, const unsigned char* payLoad, size_t size, METHOD_ID response_id)
 {
+    int result;
     if (handle == NULL)
     {
         /* Codes_SRS_IOTHUBCLIENT_LL_07_017: [ If handle or response is NULL then IoTHubClient_LL_DeviceMethodComplete shall return 500. ] */
         LogError("Invalid argument handle=%p", handle);
+        result = __LINE__;
     }
     else
     {
@@ -1020,11 +1023,15 @@ void IoTHubClient_LL_DeviceMethodComplete(IOTHUB_CLIENT_LL_HANDLE handle, const 
         {
             unsigned char* payload_resp = NULL;
             size_t resp_size = 0;
-            int result = handleData->deviceMethodCallback(method_name, payLoad, size, &payload_resp, &resp_size, handleData->deviceMethodUserContextCallback);
+            result = handleData->deviceMethodCallback(method_name, payLoad, size, &payload_resp, &resp_size, handleData->deviceMethodUserContextCallback);
             /* Codes_SRS_IOTHUBCLIENT_LL_07_020: [ deviceMethodCallback shall buil the BUFFER_HANDLE with the response payload from the IOTHUB_CLIENT_DEVICE_METHOD_CALLBACK_ASYNC callback. ] */
             if (payload_resp != NULL && resp_size > 0)
             {
-                handleData->IoTHubTransport_DeviceMethod_Response(handleData->deviceHandle, response_id, payload_resp, resp_size, result);
+                result = handleData->IoTHubTransport_DeviceMethod_Response(handleData->deviceHandle, response_id, payload_resp, resp_size, result);
+            }
+            else
+            {
+                result = __LINE__;
             }
             if (payload_resp != NULL)
             {
@@ -1033,9 +1040,14 @@ void IoTHubClient_LL_DeviceMethodComplete(IOTHUB_CLIENT_LL_HANDLE handle, const 
         }
         else if (handleData->deviceInboundMethodCallback)
         {
-            handleData->deviceInboundMethodCallback(method_name, payLoad, size, response_id, handleData->deviceMethodUserContextCallback);
+            result = handleData->deviceInboundMethodCallback(method_name, payLoad, size, response_id, handleData->deviceMethodUserContextCallback);
+        }
+        else
+        {
+            result = 0;
         }
     }
+    return result;
 }
 
 void IoTHubClient_LL_RetrievePropertyComplete(IOTHUB_CLIENT_LL_HANDLE handle, DEVICE_TWIN_UPDATE_STATE update_state, const unsigned char* payLoad, size_t size)
@@ -1457,7 +1469,7 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetDeviceMethodCallback(IOTHUB_CLIENT_LL_HA
 IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetIncomingDeviceMethodCallback(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK inboundDeviceMethodCallback, void* userContextCallback)
 {
     IOTHUB_CLIENT_RESULT result;
-
+    /* Codes_SRS_IOTHUBCLIENT_LL_07_021: [ If handle is NULL then IoTHubClient_LL_SetIncomingDeviceMethodCallback shall return IOTHUB_CLIENT_INVALID_ARG.] */
     if (iotHubClientHandle == NULL)
     {
         result = IOTHUB_CLIENT_INVALID_ARG;
@@ -1468,12 +1480,14 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetIncomingDeviceMethodCallback(IOTHUB_CLIE
         IOTHUB_CLIENT_LL_HANDLE_DATA* handleData = (IOTHUB_CLIENT_LL_HANDLE_DATA*)iotHubClientHandle;
         if (inboundDeviceMethodCallback == NULL)
         {
+            /* Codes_SRS_IOTHUBCLIENT_LL_07_022: [ If inboundDeviceMethodCallback is NULL then IoTHubClient_LL_SetIncomingDeviceMethodCallback shall call the underlying layer's IoTHubTransport_Unsubscribe_DeviceMethod function and return IOTHUB_CLIENT_OK.] */
             handleData->IoTHubTransport_Unsubscribe_DeviceMethod(handleData->transportHandle);
             handleData->deviceInboundMethodCallback = NULL;
             result = IOTHUB_CLIENT_OK;
         }
         else
         {
+            /* Codes_SRS_IOTHUBCLIENT_LL_07_023: [ If inboundDeviceMethodCallback is non-NULL then IoTHubClient_LL_SetIncomingDeviceMethodCallback shall call the underlying layer's IoTHubTransport_Subscribe_DeviceMethod function.]*/
             if (handleData->IoTHubTransport_Subscribe_DeviceMethod(handleData->deviceHandle) == 0)
             {
                 handleData->deviceInboundMethodCallback = inboundDeviceMethodCallback;
@@ -1483,16 +1497,19 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetIncomingDeviceMethodCallback(IOTHUB_CLIE
             }
             else
             {
+                /* Codes_SRS_IOTHUBCLIENT_LL_07_025: [ If any error is encountered then IoTHubClient_LL_SetIncomingDeviceMethodCallback shall return IOTHUB_CLIENT_ERROR.] */
                 result = IOTHUB_CLIENT_ERROR;
+                LOG_ERROR_RESULT;
             }
         }
     }
     return result;
 }
 
-IOTHUB_CLIENT_RESULT IoTHubClient_LL_DeviceMethodResponse(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
+IOTHUB_CLIENT_RESULT IoTHubClient_LL_DeviceMethodResponse(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
     IOTHUB_CLIENT_RESULT result;
+    /* Codes_SRS_IOTHUBCLIENT_LL_07_026: [ If handle or methodId is NULL then IoTHubClient_LL_DeviceMethodResponse shall return IOTHUB_CLIENT_INVALID_ARG.] */
     if (iotHubClientHandle == NULL || methodId == NULL)
     {
         result = IOTHUB_CLIENT_INVALID_ARG;
@@ -1501,6 +1518,7 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_DeviceMethodResponse(IOTHUB_CLIENT_LL_HANDL
     else
     {
         IOTHUB_CLIENT_LL_HANDLE_DATA* handleData = (IOTHUB_CLIENT_LL_HANDLE_DATA*)iotHubClientHandle;
+        /* Codes_SRS_IOTHUBCLIENT_LL_07_027: [ IoTHubClient_LL_DeviceMethodResponse shall call the IoTHubTransport_DeviceMethod_Response transport function.] */
         handleData->IoTHubTransport_DeviceMethod_Response(handleData->deviceHandle, methodId, response, resp_size, status_response);
         result = IOTHUB_CLIENT_OK;
     }

@@ -729,15 +729,15 @@ int IoTHubClient_LL_DeviceMethodComplete(IOTHUB_CLIENT_LL_HANDLE handle, const u
 extern IOTHUB_CLIENT_RESULT IoTHubClient_LL_SetIncomingDeviceMethodCallback(IOTHUB_CLIENT_LL_HANDLE handle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK inboundDeviceMethodCallback, void* userContextCallback);
 ```
 
-**SRS_IOTHUBCLIENT_LL_07_021: [** If `handle` is `NULL` then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall return `IOTHUB_CLIENT_INVALID_ARG`. **]**
+**SRS_IOTHUBCLIENT_LL_07_021: [** If `handle` is `NULL` then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall return `IOTHUB_CLIENT_INVALID_ARG`.**]**
 
-**SRS_IOTHUBCLIENT_LL_07_022: [** If `inboundDeviceMethodCallback` is NULL then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall call the underlying layer's `IoTHubTransport_Unsubscribe_DeviceMethod` function and return IOTHUB_CLIENT_OK. **]**
+**SRS_IOTHUBCLIENT_LL_07_022: [** If `inboundDeviceMethodCallback` is NULL then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall call the underlying layer's `IoTHubTransport_Unsubscribe_DeviceMethod` function and return IOTHUB_CLIENT_OK.**]**
 
-**SRS_IOTHUBCLIENT_LL_07_023: [** If `inboundDeviceMethodCallback` is non-NULL then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall call the underlying layer's `IoTHubTransport_Subscribe_DeviceMethod` function. **]**
+**SRS_IOTHUBCLIENT_LL_07_023: [** If `inboundDeviceMethodCallback` is non-NULL then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall call the underlying layer's `IoTHubTransport_Subscribe_DeviceMethod` function.**]**
 
-**SRS_IOTHUBCLIENT_LL_07_024: [** If `inboundDeviceMethodCallback` is non-NULL then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall set the deviceMethodCallback to NULL. **]**
+**SRS_IOTHUBCLIENT_LL_07_024: [** If `inboundDeviceMethodCallback` is non-NULL then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall set the inboundDeviceMethodCallback to NULL.**]**
 
-**SRS_IOTHUBCLIENT_LL_07_025: [** If any error is encountered then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall return `IOTHUB_CLIENT_ERROR`. **]**
+**SRS_IOTHUBCLIENT_LL_07_025: [** If any error is encountered then `IoTHubClient_LL_SetIncomingDeviceMethodCallback` shall return `IOTHUB_CLIENT_ERROR`.**]**
 
 ```c
 extern IOTHUB_CLIENT_RESULT IoTHubClient_LL_DeviceMethodResponse(IOTHUB_CLIENT_LL_HANDLE handle, METHOD_ID_HANDLE methodId, unsigned char* response, size_t resp_size, int status_response);

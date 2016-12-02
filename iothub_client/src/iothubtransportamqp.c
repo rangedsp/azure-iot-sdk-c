@@ -83,7 +83,7 @@ static void IoTHubTransportAMQP_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE ha
 	IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(handle);
 }
 
-static int IoTHubTransportAMQP_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t resp_size, int status_response)
+static int IoTHubTransportAMQP_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
     return IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, methodId, response, resp_size, status_response);
 }
