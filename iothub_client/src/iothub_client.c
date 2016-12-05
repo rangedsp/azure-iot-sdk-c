@@ -37,6 +37,7 @@ typedef struct IOTHUB_CLIENT_INSTANCE_TAG
     IOTHUB_CLIENT_EVENT_CONFIRMATION_CALLBACK event_confirm_callback;
     IOTHUB_CLIENT_REPORTED_STATE_CALLBACK reported_state_callback;
     IOTHUB_CLIENT_CONNECTION_STATUS_CALLBACK connection_status_callback;
+    IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK device_method_callback;
     void* devicetwin_user_context;
 } IOTHUB_CLIENT_INSTANCE;
 
@@ -59,7 +60,8 @@ typedef struct UPLOADTOBLOB_SAVED_DATA_TAG
     CALLBACK_TYPE_DEVICE_TWIN,      \
     CALLBACK_TYPE_EVENT_CONFIRM,    \
     CALLBACK_TYPE_REPORTED_STATE,   \
-    CALLBACK_TYPE_CONNECTION_STATUS
+    CALLBACK_TYPE_CONNECTION_STATUS, \
+    CALLBACK_TYPE_DEVICE_METHOD
 
 DEFINE_ENUM(USER_CALLBACK_TYPE, USER_CALLBACK_TYPE_VALUES)
 
@@ -88,11 +90,9 @@ typedef struct CONNECTION_STATUS_CALLBACK_INFO_TAG
 
 typedef struct METHOD_CALLBACK_INFO_TAG
 {
-    const char* method_name;
-    const unsigned char* payload;
-    size_t size;
-    unsigned char* response;
-    size_t resp_size;
+    STRING_HANDLE method_name;
+    BUFFER_HANDLE payload;
+    METHOD_ID method_id;
 } METHOD_CALLBACK_INFO;
 
 typedef struct USER_CALLBACK_INFO_TAG
@@ -105,6 +105,7 @@ typedef struct USER_CALLBACK_INFO_TAG
         EVENT_CONFIRM_CALLBACK_INFO event_confirm_cb_info;
         REPORTED_STATE_CALLBACK_INFO reported_state_cb_info;
         CONNECTION_STATUS_CALLBACK_INFO connection_status_cb_info;
+        METHOD_CALLBACK_INFO method_cb_info;
     } iothub_callback;
 } USER_CALLBACK_INFO;
 
@@ -173,14 +174,23 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT iothub_ll_message_callback(IOTHUB_MESSAG
     return IOTHUBMESSAGE_ABANDONED;
 }
 
-static int iothub_ll_method_callback(const char* method_name, const unsigned char* payload, size_t size, unsigned char** response, size_t* resp_size, void* userContextCallback)
+static int iothub_ll_inbound_device_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
 {
-    (void)method_name;
-    (void)payload;
-    (void)size;
-    (void)response;
-    (void)resp_size;
-    (void)userContextCallback;
+    IOTHUB_QUEUE_CONTEXT* queue_context = (IOTHUB_QUEUE_CONTEXT*)userContextCallback;
+    if (queue_context != NULL)
+    {
+        USER_CALLBACK_INFO queue_cb_info;
+        queue_cb_info.type = CALLBACK_TYPE_DEVICE_METHOD;
+        queue_cb_info.userContextCallback = queue_context->userContextCallback;
+        queue_cb_info.iothub_callback.method_cb_info.method_name = STRING_construct(method_name);
+        queue_cb_info.iothub_callback.method_cb_info.payload = BUFFER_create(payload, size);
+        queue_cb_info.iothub_callback.method_cb_info.method_id = method_id;
+        if (VECTOR_push_back(queue_context->iotHubClientHandle->saved_user_callback_list, &queue_cb_info, 1) != 0)
+        {
+            LogError("connection status callback vector push failed.");
+        }
+        free(queue_context);
+    }
     return 0;
 }
 
@@ -333,6 +343,19 @@ static void dispatch_user_callbacks(IOTHUB_CLIENT_INSTANCE* iotHubClientInstance
                             {
                                 LogError("Failed locking after connection status callback");
                             }
+                        }
+                        break;
+                    case CALLBACK_TYPE_DEVICE_METHOD:
+                        if (iotHubClientInstance->connection_status_callback)
+                        {
+                            (void)Unlock(iotHubClientInstance->LockHandle);
+                            iotHubClientInstance->device_method_callback(STRING_c_str(queued_cb->iothub_callback.method_cb_info.method_name), BUFFER_u_char(queued_cb->iothub_callback.method_cb_info.payload), BUFFER_length(queued_cb->iothub_callback.method_cb_info.payload), queued_cb->iothub_callback.method_cb_info.method_id, queued_cb->userContextCallback);
+                            if (Lock(iotHubClientInstance->LockHandle) != LOCK_OK)
+                            {
+                                LogError("Failed locking after connection status callback");
+                            }
+                            BUFFER_delete(queued_cb->iothub_callback.method_cb_info.payload);
+                            STRING_delete(queued_cb->iothub_callback.method_cb_info.method_name);
                         }
                         break;
                 }
@@ -1274,6 +1297,75 @@ IOTHUB_CLIENT_RESULT IoTHubClient_SetDeviceMethodCallback(IOTHUB_CLIENT_HANDLE i
                 if (result != IOTHUB_CLIENT_OK)
                 {
                     LogError("IoTHubClient_LL_SetDeviceMethodCallback failed");
+                }
+            }
+
+            (void)Unlock(iotHubClientInstance->LockHandle);
+        }
+    }
+    return result;
+}
+
+IOTHUB_CLIENT_RESULT IoTHubClient_SetIncomingDeviceMethodCallback(IOTHUB_CLIENT_HANDLE iotHubClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK inboundDeviceMethodCallback, void* userContextCallback)
+{
+    IOTHUB_CLIENT_RESULT result;
+
+    /*Codes_SRS_IOTHUBCLIENT_12_012: [ If iotHubClientHandle is NULL, IoTHubClient_SetDeviceMethodCallback shall return IOTHUB_CLIENT_INVALID_ARG. ]*/ 
+    if (iotHubClientHandle == NULL)
+    {
+        result = IOTHUB_CLIENT_INVALID_ARG;
+        LogError("invalid arg (NULL)");
+    }
+    else
+    {
+        IOTHUB_CLIENT_INSTANCE* iotHubClientInstance = (IOTHUB_CLIENT_INSTANCE*)iotHubClientHandle;
+
+        /*Codes_SRS_IOTHUBCLIENT_12_018: [ IoTHubClient_SetDeviceMethodCallback shall be made thread-safe by using the lock created in IoTHubClient_Create. ]*/
+        if (Lock(iotHubClientInstance->LockHandle) != LOCK_OK)
+        {
+            /*Codes_SRS_IOTHUBCLIENT_12_013: [ If acquiring the lock fails, IoTHubClient_SetDeviceMethodCallback shall return IOTHUB_CLIENT_ERROR. ]*/
+            result = IOTHUB_CLIENT_ERROR;
+            LogError("Could not acquire lock");
+        }
+        else
+        {
+            if (iotHubClientInstance->created_with_transport_handle == 0)
+            {
+                iotHubClientInstance->device_method_callback = inboundDeviceMethodCallback;
+            }
+            /*Codes_SRS_IOTHUBCLIENT_12_014: [ If the transport handle is null and the worker thread is not initialized, the thread shall be started by calling IoTHubTransport_StartWorkerThread. ]*/
+            if ((result = StartWorkerThreadIfNeeded(iotHubClientInstance)) != IOTHUB_CLIENT_OK)
+            {
+                /*Codes_SRS_IOTHUBCLIENT_12_015: [ If starting the thread fails, IoTHubClient_SetDeviceMethodCallback shall return IOTHUB_CLIENT_ERROR. ]*/
+                result = IOTHUB_CLIENT_ERROR;
+                LogError("Could not start worker thread");
+            }
+            else
+            {
+                if (iotHubClientInstance->created_with_transport_handle != 0 || inboundDeviceMethodCallback == NULL)
+                {
+                    /*Codes_SRS_IOTHUBCLIENT_12_016: [ IoTHubClient_SetDeviceMethodCallback shall call IoTHubClient_LL_SetDeviceMethodCallback, while passing the IoTHubClient_LL_handle created by IoTHubClient_LL_Create along with the parameters deviceMethodCallback and userContextCallback. ]*/
+                    /*Codes_SRS_IOTHUBCLIENT_12_017: [ When IoTHubClient_LL_SetDeviceMethodCallback is called, IoTHubClient_SetDeviceMethodCallback shall return the result of IoTHubClient_LL_SetDeviceMethodCallback. ]*/
+                    result = IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientInstance->IoTHubClientLLHandle, iothub_ll_inbound_device_method_callback, userContextCallback);
+                }
+                else
+                {
+                    IOTHUB_QUEUE_CONTEXT* queue_context = (IOTHUB_QUEUE_CONTEXT*)malloc(sizeof(IOTHUB_QUEUE_CONTEXT));
+                    if (queue_context == NULL)
+                    {
+                        result = IOTHUB_CLIENT_ERROR;
+                        LogError("Failed allocating QUEUE_CONTEXT");
+                    }
+                    else
+                    {
+                        queue_context->iotHubClientHandle = iotHubClientInstance;
+                        queue_context->userContextCallback = userContextCallback;
+                        result = IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientInstance->IoTHubClientLLHandle, iothub_ll_inbound_device_method_callback, queue_context);
+                        if (result != IOTHUB_CLIENT_OK)
+                        {
+                            LogError("IoTHubClient_LL_SetDeviceMethodCallback failed");
+                        }
+                    }
                 }
             }
 

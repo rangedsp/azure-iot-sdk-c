@@ -260,6 +260,9 @@ public:
         *iotHubClientStatus = currentIotHubClientStatus;
         MOCK_METHOD_END(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK)
 
+        MOCK_STATIC_METHOD_5(, int, FAKE_IoTHubTransport_DeviceMethod_Response, IOTHUB_DEVICE_HANDLE, handle, METHOD_ID, methodId, const unsigned char*, response, size_t, resp_size, int, status_response)
+        MOCK_METHOD_END(int, 0)
+
         MOCK_STATIC_METHOD_2(, void, eventConfirmationCallback, IOTHUB_CLIENT_CONFIRMATION_RESULT, result2, void*, userContextCallback)
         MOCK_VOID_METHOD_END()
 
@@ -290,14 +293,14 @@ public:
 
     /* Version Mocks */
     MOCK_STATIC_METHOD_0(, const char*, IoTHubClient_GetVersionString)
-        MOCK_METHOD_END(const char*, (const char*) NULL)
+    MOCK_METHOD_END(const char*, (const char*) NULL)
 
-        MOCK_STATIC_METHOD_0(, TICK_COUNTER_HANDLE, tickcounter_create);
+    MOCK_STATIC_METHOD_0(, TICK_COUNTER_HANDLE, tickcounter_create);
     TICK_COUNTER_HANDLE result2 = (TICK_COUNTER_HANDLE )BASEIMPLEMENTATION::gballoc_malloc(1);
     MOCK_METHOD_END(TICK_COUNTER_HANDLE, result2)
 
-        MOCK_STATIC_METHOD_1(, void, tickcounter_destroy, TICK_COUNTER_HANDLE, tick_counter);
-    BASEIMPLEMENTATION::gballoc_free(tick_counter);
+    MOCK_STATIC_METHOD_1(, void, tickcounter_destroy, TICK_COUNTER_HANDLE, tick_counter);
+        BASEIMPLEMENTATION::gballoc_free(tick_counter);
     MOCK_VOID_METHOD_END()
 
         MOCK_STATIC_METHOD_2(, int, tickcounter_get_current_ms, TICK_COUNTER_HANDLE, tick_counter, uint64_t*, current_ms);
@@ -334,12 +337,12 @@ public:
         void* result2 = BASEIMPLEMENTATION::VECTOR_back(vector);
     MOCK_METHOD_END(void*, result2)
 
-        MOCK_STATIC_METHOD_3(, void*, VECTOR_find_if, VECTOR_HANDLE, vector, PREDICATE_FUNCTION, pred, const void*, value)
+    MOCK_STATIC_METHOD_3(, void*, VECTOR_find_if, VECTOR_HANDLE, vector, PREDICATE_FUNCTION, pred, const void*, value)
         void* result2;
     result2 = BASEIMPLEMENTATION::VECTOR_find_if(vector, pred, value);
     MOCK_METHOD_END(void*, result2)
 
-        MOCK_STATIC_METHOD_1(, size_t, VECTOR_size, VECTOR_HANDLE, vector)
+    MOCK_STATIC_METHOD_1(, size_t, VECTOR_size, VECTOR_HANDLE, vector)
         size_t result2 = BASEIMPLEMENTATION::VECTOR_size(vector);
     MOCK_METHOD_END(size_t, result2)
 
@@ -400,6 +403,7 @@ DECLARE_GLOBAL_MOCK_METHOD_1(CIotHubTransportMocks, , void, FAKE_IoTHubTransport
 DECLARE_GLOBAL_MOCK_METHOD_2(CIotHubTransportMocks, , void, FAKE_IoTHubTransport_DoWork, TRANSPORT_LL_HANDLE, handle, IOTHUB_CLIENT_LL_HANDLE, iotHubClientHandle);
 DECLARE_GLOBAL_MOCK_METHOD_3(CIotHubTransportMocks, , int, FAKE_IoTHubTransport_SetRetryPolicy, TRANSPORT_LL_HANDLE, handle, IOTHUB_CLIENT_RETRY_POLICY, retryPolicy, size_t, retryTimeoutLimitInSeconds);
 DECLARE_GLOBAL_MOCK_METHOD_2(CIotHubTransportMocks, , IOTHUB_CLIENT_RESULT, FAKE_IoTHubTransport_GetSendStatus, TRANSPORT_LL_HANDLE, handle, IOTHUB_CLIENT_STATUS*, iotHubClientStatus);
+DECLARE_GLOBAL_MOCK_METHOD_5(CIotHubTransportMocks, , int, FAKE_IoTHubTransport_DeviceMethod_Response, IOTHUB_DEVICE_HANDLE, handle, METHOD_ID, methodId, const unsigned char*, response, size_t, resp_size, int, status_response);
 
 DECLARE_GLOBAL_MOCK_METHOD_2(CIotHubTransportMocks, , void, eventConfirmationCallback, IOTHUB_CLIENT_CONFIRMATION_RESULT, result2, void*, userContextCallback);
 
@@ -445,6 +449,7 @@ static TRANSPORT_PROVIDER FAKE_transport_provider =
 {
     FAKE_IoTHubTransport_Subscribe_DeviceMethod,    /*pfIoTHubTransport_Subscribe_DeviceMethod IoTHubTransport_Subscribe_DeviceMethod;*/
     FAKE_IoTHubTransport_Unsubscribe_DeviceMethod,  /*pfIoTHubTransport_Unsubscribe_DeviceMethod IoTHubTransport_Unsubscribe_DeviceMethod;*/
+    FAKE_IoTHubTransport_DeviceMethod_Response,
     FAKE_IoTHubTransport_Subscribe_DeviceTwin,      /*pfIoTHubTransport_Subscribe_DeviceTwin IoTHubTransport_Subscribe_DeviceTwin;*/
     FAKE_IoTHubTransport_Unsubscribe_DeviceTwin,    /*pfIoTHubTransport_Unsubscribe_DeviceTwin IoTHubTransport_Unsubscribe_DeviceTwin;*/
     FAKE_IoTHubTransport_ProcessItem,               /*pfIoTHubTransport_ProcessItem IoTHubTransport_ProcessItem;*/

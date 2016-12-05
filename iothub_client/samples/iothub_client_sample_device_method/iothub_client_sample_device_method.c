@@ -12,6 +12,8 @@
 #include "iothubtransportmqtt.h"
 #include "iothubtransportamqp.h"
 
+#include <vld.h>
+
 #ifdef MBED_BUILD_TIMESTAMP
 #include "certs.h"
 #endif // MBED_BUILD_TIMESTAMP
@@ -52,7 +54,7 @@ static int incoming_method_callback(const char* method_name, const unsigned char
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
 
-    IOTHUB_MESSAGE_HANDLE messageHandle;
+    /*IOTHUB_MESSAGE_HANDLE messageHandle;
     if ((messageHandle = IoTHubMessage_CreateFromString("Test Async Message")) == NULL)
     {
         (void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
@@ -64,16 +66,17 @@ static int incoming_method_callback(const char* method_name, const unsigned char
             (void)printf("ERROR: IoTHubClient_LL_SendEventAsync Failed!\r\n");
             IoTHubMessage_Destroy(messageHandle);
         }
-    }
+    }*/
 
     int status = 200;
-    char* RESPONSE_STRING = "{ \"Response\": \"This is the response from the device\" }";
+    char* RESPONSE_STRING = "{ \"Response\": \"This is an actual async response from the device\" }";
     size_t resp_length = strlen(RESPONSE_STRING);
 
     IoTHubClient_LL_DeviceMethodResponse(iotHubClientHandle, method_id, (unsigned char*)RESPONSE_STRING, resp_length, status);
 
     result = 0;
 
+    g_continueRunning = false;
     return result;
 }
 
@@ -103,65 +106,110 @@ static int DeviceMethodCallback(const char* method_name, const unsigned char* pa
     return status;
 }
 
-void iothub_client_sample_device_method_run(void)
+void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type)
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 
     g_continueRunning = true;
     
+    if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, transport_type)) == NULL)
+    {
+        (void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
+    }
+    else
+    {
+        bool traceOn = true;
+        IoTHubClient_LL_SetOption(iotHubClientHandle, "logtrace", &traceOn);
+
+#ifdef MBED_BUILD_TIMESTAMP
+        // For mbed add the certificate information
+        if (IoTHubClient_LL_SetOption(iotHubClientHandle, "TrustedCerts", certificates) != IOTHUB_CLIENT_OK)
+        {
+            printf("failure to set option \"TrustedCerts\"\r\n");
+        }
+#endif // MBED_BUILD_TIMESTAMP
+
+        if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        //if (IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientHandle, incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        {
+            (void)printf("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
+        }
+        else
+        {
+            (void)printf("IoTHubClient_LL_SetDeviceMethodCallback...successful.\r\n");
+
+            do
+            {
+                IoTHubClient_LL_DoWork(iotHubClientHandle);
+                ThreadAPI_Sleep(1);
+            } while (g_continueRunning);
+
+            (void)printf("iothub_client_sample_device_method exited, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
+            for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
+            {
+                IoTHubClient_LL_DoWork(iotHubClientHandle);
+                ThreadAPI_Sleep(1);
+            }
+        }
+        IoTHubClient_LL_Destroy(iotHubClientHandle);
+    }
+}
+
+void iothub_client_sample_device_method_threaded(IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type)
+{
+    IOTHUB_CLIENT_HANDLE iotHubClientHandle;
+
+    g_continueRunning = true;
+
+    if ((iotHubClientHandle = IoTHubClient_CreateFromConnectionString(connectionString, transport_type)) == NULL)
+    {
+        (void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
+    }
+    else
+    {
+        bool traceOn = true;
+        IoTHubClient_SetOption(iotHubClientHandle, "logtrace", &traceOn);
+
+#ifdef MBED_BUILD_TIMESTAMP
+        // For mbed add the certificate information
+        if (IoTHubClient_SetOption(iotHubClientHandle, "TrustedCerts", certificates) != IOTHUB_CLIENT_OK)
+        {
+            printf("failure to set option \"TrustedCerts\"\r\n");
+        }
+#endif // MBED_BUILD_TIMESTAMP
+
+        if (IoTHubClient_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        {
+            (void)printf("ERROR: IoTHubClient_SetDeviceMethodCallback..........FAILED!\r\n");
+        }
+        else
+        {
+            (void)printf("IoTHubClient_SetDeviceMethodCallback...successful.\r\n");
+
+            do
+            {
+                ThreadAPI_Sleep(1);
+            } while (g_continueRunning);
+        }
+
+        IoTHubClient_Destroy(iotHubClientHandle);
+    }
+}
+
+int main(void)
+{
     if (platform_init() != 0)
     {
         (void)printf("Failed to initialize the platform.\r\n");
     }
     else
     {
-        if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, AMQP_Protocol)) == NULL)
-        {
-            (void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
-        }
-        else
-        {
-            bool traceOn = true;
-            IoTHubClient_LL_SetOption(iotHubClientHandle, "logtrace", &traceOn);
+        IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = MQTT_Protocol; // AMQP_Protocol
 
-#ifdef MBED_BUILD_TIMESTAMP
-            // For mbed add the certificate information
-            if (IoTHubClient_LL_SetOption(iotHubClientHandle, "TrustedCerts", certificates) != IOTHUB_CLIENT_OK)
-            {
-                printf("failure to set option \"TrustedCerts\"\r\n");
-            }
-#endif // MBED_BUILD_TIMESTAMP
-
-            //if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, &receiveContext) != IOTHUB_CLIENT_OK)
-            if (IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientHandle, incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
-            {
-                (void)printf("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
-            }
-            else
-            {
-                (void)printf("IoTHubClient_LL_SetDeviceMethodCallback...successful.\r\n");
-
-                do
-                {
-                    IoTHubClient_LL_DoWork(iotHubClientHandle);
-                    ThreadAPI_Sleep(1);
-                } while (g_continueRunning);
-
-                (void)printf("iothub_client_sample_device_method exited, call DoWork %d more time to complete final sending...\r\n", DOWORK_LOOP_NUM);
-                for (size_t index = 0; index < DOWORK_LOOP_NUM; index++)
-                {
-                    IoTHubClient_LL_DoWork(iotHubClientHandle);
-                    ThreadAPI_Sleep(1);
-                }
-            }
-            IoTHubClient_LL_Destroy(iotHubClientHandle);
-        }
+        iothub_client_sample_device_method_threaded(transport_type);
+        //iothub_client_sample_device_method_run(transport_type);
         platform_deinit();
     }
-}
-
-int main(void)
-{
-    iothub_client_sample_device_method_run();
+    (void)getchar();
     return 0;
 }
