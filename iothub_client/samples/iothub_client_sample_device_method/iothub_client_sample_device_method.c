@@ -26,7 +26,7 @@ static const char* connectionString = "";
 static char msgText[1024];
 static char propText[1024];
 static bool g_continueRunning;
-#define MESSAGE_COUNT 5
+#define MESSAGE_COUNT       5
 #define DOWORK_LOOP_NUM     3
 
 typedef struct EVENT_INSTANCE_TAG
@@ -44,7 +44,7 @@ static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, v
     IoTHubMessage_Destroy(messageHandle);
 }
 
-static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
+static int ll_incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = (IOTHUB_CLIENT_LL_HANDLE)userContextCallback;
 
@@ -54,25 +54,69 @@ static int incoming_method_callback(const char* method_name, const unsigned char
     printf("Device Method name:    %s\r\n", method_name);
     printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
 
-    /*IOTHUB_MESSAGE_HANDLE messageHandle;
+    int status = 200;
+    char* RESPONSE_STRING = "{ \"Response\": \"This is an actual async response from the device\" }";
+
+    IOTHUB_MESSAGE_HANDLE messageHandle;
     if ((messageHandle = IoTHubMessage_CreateFromString("Test Async Message")) == NULL)
     {
         (void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
+        RESPONSE_STRING = "{ \"Response\": \"Failed IoTHubMessage_CreateFromString\" }";
+        status = 304;
     }
     else
     {
         if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, SendConfirmationCallback, messageHandle) != IOTHUB_CLIENT_OK)
         {
+            RESPONSE_STRING = "{ \"Response\": \"Failed IoTHubClient_LL_SendEventAsync\" }";
             (void)printf("ERROR: IoTHubClient_LL_SendEventAsync Failed!\r\n");
+            status = 304;
             IoTHubMessage_Destroy(messageHandle);
         }
-    }*/
+    }
 
-    int status = 200;
-    char* RESPONSE_STRING = "{ \"Response\": \"This is an actual async response from the device\" }";
     size_t resp_length = strlen(RESPONSE_STRING);
 
     IoTHubClient_LL_DeviceMethodResponse(iotHubClientHandle, method_id, (unsigned char*)RESPONSE_STRING, resp_length, status);
+
+    result = 0;
+
+    g_continueRunning = false;
+    return result;
+}
+
+static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
+{
+    IOTHUB_CLIENT_HANDLE iotHubClientHandle = (IOTHUB_CLIENT_HANDLE)userContextCallback;
+
+    int result;
+
+    printf("\r\nDevice Method called\r\n");
+    printf("Device Method name:    %s\r\n", method_name);
+    printf("Device Method payload: %.*s\r\n", (int)size, (const char*)payload);
+
+    int status = 200;
+    char* RESPONSE_STRING = "{ \"Response\": \"This is an actual async response from the device\" }";
+
+    IOTHUB_MESSAGE_HANDLE messageHandle;
+    if ((messageHandle = IoTHubMessage_CreateFromString("Test Async Message")) == NULL)
+    {
+        (void)printf("ERROR: iotHubMessageHandle is NULL!\r\n");
+        RESPONSE_STRING = "{ \"Response\": \"Failed IoTHubMessage_CreateFromString\" }";
+        status = 304;
+    }
+    else
+    {
+        if (IoTHubClient_SendEventAsync(iotHubClientHandle, messageHandle, SendConfirmationCallback, messageHandle) != IOTHUB_CLIENT_OK)
+        {
+            RESPONSE_STRING = "{ \"Response\": \"Failed IoTHubClient_SendEventAsync\" }";
+            (void)printf("ERROR: IoTHubClient_LL_SendEventAsync Failed!\r\n");
+            status = 304;
+        }
+    }
+
+    size_t resp_length = strlen(RESPONSE_STRING);
+    IoTHubClient_DeviceMethodResponse(iotHubClientHandle, method_id, (unsigned char*)RESPONSE_STRING, resp_length, status);
 
     result = 0;
 
@@ -110,8 +154,6 @@ void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER tr
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 
-    g_continueRunning = true;
-    
     if ((iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, transport_type)) == NULL)
     {
         (void)printf("ERROR: iotHubClientHandle is NULL!\r\n");
@@ -129,8 +171,8 @@ void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER tr
         }
 #endif // MBED_BUILD_TIMESTAMP
 
-        if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
-        //if (IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientHandle, incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        //if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        if (IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientHandle, ll_incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
         {
             (void)printf("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
         }
@@ -151,6 +193,9 @@ void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER tr
                 ThreadAPI_Sleep(1);
             }
         }
+
+        printf("Press Any Key to continue\r\n");
+        (void)getchar();
         IoTHubClient_LL_Destroy(iotHubClientHandle);
     }
 }
@@ -158,8 +203,6 @@ void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER tr
 void iothub_client_sample_device_method_threaded(IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type)
 {
     IOTHUB_CLIENT_HANDLE iotHubClientHandle;
-
-    g_continueRunning = true;
 
     if ((iotHubClientHandle = IoTHubClient_CreateFromConnectionString(connectionString, transport_type)) == NULL)
     {
@@ -178,7 +221,7 @@ void iothub_client_sample_device_method_threaded(IOTHUB_CLIENT_TRANSPORT_PROVIDE
         }
 #endif // MBED_BUILD_TIMESTAMP
 
-        if (IoTHubClient_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        if (IoTHubClient_SetIncomingDeviceMethodCallback(iotHubClientHandle, incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
         {
             (void)printf("ERROR: IoTHubClient_SetDeviceMethodCallback..........FAILED!\r\n");
         }
@@ -192,6 +235,9 @@ void iothub_client_sample_device_method_threaded(IOTHUB_CLIENT_TRANSPORT_PROVIDE
             } while (g_continueRunning);
         }
 
+        printf("Press Any Key to continue");
+        (void)getchar();
+
         IoTHubClient_Destroy(iotHubClientHandle);
     }
 }
@@ -204,12 +250,14 @@ int main(void)
     }
     else
     {
-        IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = MQTT_Protocol; // AMQP_Protocol
+        g_continueRunning = true;
+
+        //IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = MQTT_Protocol;
+        IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = AMQP_Protocol;
 
         iothub_client_sample_device_method_threaded(transport_type);
-        //iothub_client_sample_device_method_run(transport_type);
+        //iothub_client_sample_device_method(transport_type);
         platform_deinit();
     }
-    (void)getchar();
     return 0;
 }

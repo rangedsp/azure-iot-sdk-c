@@ -1519,8 +1519,15 @@ IOTHUB_CLIENT_RESULT IoTHubClient_LL_DeviceMethodResponse(IOTHUB_CLIENT_LL_HANDL
     {
         IOTHUB_CLIENT_LL_HANDLE_DATA* handleData = (IOTHUB_CLIENT_LL_HANDLE_DATA*)iotHubClientHandle;
         /* Codes_SRS_IOTHUBCLIENT_LL_07_027: [ IoTHubClient_LL_DeviceMethodResponse shall call the IoTHubTransport_DeviceMethod_Response transport function.] */
-        handleData->IoTHubTransport_DeviceMethod_Response(handleData->deviceHandle, methodId, response, resp_size, status_response);
-        result = IOTHUB_CLIENT_OK;
+        if (handleData->IoTHubTransport_DeviceMethod_Response(handleData->deviceHandle, methodId, response, resp_size, status_response) != 0)
+        {
+            LogError("IoTHubTransport_DeviceMethod_Response failed");
+            result = IOTHUB_CLIENT_ERROR;
+        }
+        else
+        {
+            result = IOTHUB_CLIENT_OK;
+        }
     }
     return result;
 }

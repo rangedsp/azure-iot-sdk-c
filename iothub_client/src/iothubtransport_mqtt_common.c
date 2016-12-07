@@ -231,6 +231,11 @@ typedef struct MQTT_MESSAGE_DETAILS_LIST_TAG
     DLIST_ENTRY entry;
 } MQTT_MESSAGE_DETAILS_LIST, *PMQTT_MESSAGE_DETAILS_LIST;
 
+typedef struct DEVICE_METHOD_INFO_TAG
+{
+    uint16_t request_id;
+} DEVICE_METHOD_INFO;
+
 static int RetryPolicy_Exponential_BackOff_With_Jitter(bool *permit, size_t* delay, void* retryContextCallback)
 {
     int result;
@@ -1145,7 +1150,6 @@ static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* call
             }
             else if (type == IOTHUB_TYPE_DEVICE_METHODS)
             {
-                uint16_t request_id;
                 STRING_HANDLE method_name = STRING_new();
                 if (method_name == NULL)
                 {
@@ -1153,14 +1157,26 @@ static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* call
                 }
                 else
                 {
-                    if (retrieve_device_method_rid_info(topic_resp, method_name, &request_id) != 0)
+                    DEVICE_METHOD_INFO* dev_method_info = malloc(sizeof(DEVICE_METHOD_INFO) );
+                    if (dev_method_info == NULL)
                     {
-                        LogError("Failure: retrieve device topic info");
+                        LogError("Failure: allocating DEVICE_METHOD_INFO object");
                     }
                     else
                     {
-                        const APP_PAYLOAD* payload = mqttmessage_getApplicationMsg(msgHandle);
-                        IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, (METHOD_ID)&request_id);
+                        if (retrieve_device_method_rid_info(topic_resp, method_name, &dev_method_info->request_id) != 0)
+                        {
+                            LogError("Failure: retrieve device topic info");
+                            free(dev_method_info);
+                        }
+                        else
+                        {
+                            const APP_PAYLOAD* payload = mqttmessage_getApplicationMsg(msgHandle);
+                            if (IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, (void*)dev_method_info) != 0)
+                            {
+                                LogError("Failure: IoTHubClient_LL_DeviceMethodComplete");
+                            }
+                        }
                     }
                     STRING_delete(method_name);
                 }
@@ -2153,22 +2169,32 @@ int IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handl
     if (transport_data != NULL)
     {
         /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_042: [ IoTHubTransport_MQTT_Common_DeviceMethod_Response shall publish an mqtt message for the device method response. ] */
-        uint16_t request_id = (*(uint16_t*)methodId);
-        if (publish_device_method_message(transport_data, status, request_id, response, respSize) != 0)
+        DEVICE_METHOD_INFO* dev_method_info = (DEVICE_METHOD_INFO*)methodId;
+        if (dev_method_info == NULL)
         {
-            /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_051: [ If any error is encountered, IoTHubTransport_MQTT_Common_DeviceMethod_Response shall return a non-zero value. ] */
-            LogError("Failure: publishing device method response");
+            LogError("Failure: DEVICE_METHOD_INFO was NULL");
             result = __LINE__;
         }
         else
         {
-            result = 0;
+            if (publish_device_method_message(transport_data, status, dev_method_info->request_id, response, respSize) != 0)
+            {
+                /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_051: [ If any error is encountered, IoTHubTransport_MQTT_Common_DeviceMethod_Response shall return a non-zero value. ] */
+                LogError("Failure: publishing device method response");
+                result = __LINE__;
+            }
+            else
+            {
+                result = 0;
+            }
+            free(dev_method_info);
         }
     }
     else
     {
         /* Codes_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_041: [ If the parameter handle is NULL than IoTHubTransport_MQTT_Common_DeviceMethod_Response shall return a non-zero value. ] */
         result = __LINE__;
+        LogError("Failure: invalid IOTHUB_DEVICE_HANDLE parameter specified");
     }
     return result;
 }

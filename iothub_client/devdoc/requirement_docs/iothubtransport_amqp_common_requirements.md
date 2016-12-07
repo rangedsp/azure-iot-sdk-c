@@ -618,25 +618,20 @@ void IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
 void on_methods_request_received(void* context, const char* method_name, const unsigned char* request, size_t request_size, IOTHUBTRANSPORT_AMQP_METHOD_HANDLE method_handle);
 ```
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_016: [** `on_methods_request_received` shall create a BUFFER_HANDLE by calling `BUFFER_new`. **]**
-
 **SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_028: [** On success, `on_methods_request_received` shall return 0. **]**
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_025: [** If creating the buffer fails, on_methods_request_received shall fail and return a non-zero value. **]**
+**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_017: [** `on_methods_request_received` shall call the `IoTHubClient_LL_DeviceMethodComplete` passing the method name, request buffer and size. **]**
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_017: [** `on_methods_request_received` shall call the `IoTHubClient_LL_DeviceMethodComplete` passing the method name, request buffer and size and the newly created BUFFER handle. **]**
+###IoTHubTransport_AMQP_Common_DeviceMethod_Response
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_019: [** `on_methods_request_received` shall call `iothubtransportamqp_methods_respond` passing to it the `method_handle` argument, the response bytes, response size and the status code. **]**
+```c
+int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
+```
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_020: [** The response bytes shall be obtained by calling `BUFFER_u_char`. **]**
+**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_019: [** `IoTHubTransport_AMQP_Common_DeviceMethod_Response` shall call `iothubtransportamqp_methods_respond` passing to it the `method_handle` argument, the response bytes, response size and the status code. **]**
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_021: [** The response size shall be obtained by calling `BUFFER_length`. **]**
+**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_029: [** If `iothubtransportamqp_methods_respond` fails, `IoTHubTransport_AMQP_Common_DeviceMethod_Response` shall return a non-zero value. **]**
 
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_022: [** The status code shall be the return value of the call to `IoTHubClient_LL_DeviceMethodComplete`. **]**
-
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_023: [** After calling `iothubtransportamqp_methods_respond`, the allocated buffer shall be freed by using BUFFER_delete. **]**
-
-**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_029: [** If `iothubtransportamqp_methods_respond` fails, `on_methods_request_received` shall return a non-zero value. **]**
 
 ###on_methods_error
 
