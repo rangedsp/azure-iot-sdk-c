@@ -12,8 +12,6 @@
 #include "iothubtransportmqtt.h"
 #include "iothubtransportamqp.h"
 
-#include <vld.h>
-
 #ifdef MBED_BUILD_TIMESTAMP
 #include "certs.h"
 #endif // MBED_BUILD_TIMESTAMP

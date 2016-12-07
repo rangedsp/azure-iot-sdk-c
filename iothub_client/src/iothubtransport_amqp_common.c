@@ -1457,10 +1457,10 @@ void IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
 int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
 {
     int result;
-
     AMQP_TRANSPORT_DEVICE_STATE* device_state = (AMQP_TRANSPORT_DEVICE_STATE*)handle;
     if (device_state != NULL)
     {
+#ifdef WIP_C2D_METHODS_AMQP /* This feature is WIP, do not use yet */
         IOTHUBTRANSPORT_AMQP_METHOD_HANDLE saved_handle = (IOTHUBTRANSPORT_AMQP_METHOD_HANDLE)methodId;
         /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_019: [ `IoTHubTransport_AMQP_Common_DeviceMethod_Response` shall call `iothubtransportamqp_methods_respond` passing to it the `method_handle` argument, the response bytes, response size and the status code. ]*/
         if (iothubtransportamqp_methods_respond(saved_handle, response, resp_size, status_response) != 0)
@@ -1473,6 +1473,10 @@ int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handl
         {
             result = 0;
         }
+#else
+        result = 0;
+        LogError("Not implemented");
+#endif
     }
     else
     {
