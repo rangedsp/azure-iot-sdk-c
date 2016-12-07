@@ -1175,6 +1175,7 @@ static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* call
                             if (IoTHubClient_LL_DeviceMethodComplete(transportData->llClientHandle, STRING_c_str(method_name), payload->message, payload->length, (void*)dev_method_info) != 0)
                             {
                                 LogError("Failure: IoTHubClient_LL_DeviceMethodComplete");
+                                free(dev_method_info);
                             }
                         }
                     }

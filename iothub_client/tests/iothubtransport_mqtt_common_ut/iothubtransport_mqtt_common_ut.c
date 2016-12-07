@@ -832,6 +832,7 @@ static void setup_devicemethod_response_mocks()
         .IgnoreArgument(1);
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG))
         .IgnoreArgument_handle();
+    EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG));
 }
 
 static void setup_initialize_connection_mocks()
@@ -5222,7 +5223,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_handle_NULL_fail
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_succeeds)
 {
     // arrange
-    IOTHUBTRANSPORT_CONFIG config ={ 0 };
+    IOTHUBTRANSPORT_CONFIG config = { 0 };
     SetupIothubTransportConfig(&config, TEST_DEVICE_ID, TEST_DEVICE_KEY, TEST_IOTHUB_NAME, TEST_IOTHUB_SUFFIX, TEST_PROTOCOL_GATEWAY_HOSTNAME);
 
     TRANSPORT_LL_HANDLE handle = IoTHubTransport_MQTT_Common_Create(&config, get_IO_transport);
@@ -5230,8 +5231,10 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_succeeds)
 
     setup_devicemethod_response_mocks();
 
+    METHOD_ID meth_id = my_gballoc_malloc(sizeof(uint16_t) );
+
     // act
-    int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, TEST_METHOD_ID, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+    int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, meth_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -5258,7 +5261,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 0, 3, 4 };
+    size_t calls_cannot_fail[] = { 0, 3, 4, 5 };
 
     // act
     size_t count = umock_c_negative_tests_call_count();
@@ -5272,9 +5275,11 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
         umock_c_negative_tests_reset();
         umock_c_negative_tests_fail_call(index);
 
+        METHOD_ID meth_id = my_gballoc_malloc(sizeof(uint16_t) );
+
         char tmp_msg[128];
         sprintf(tmp_msg, "IoTHubTransport_MQTT_Common_DeviceMethod_Response failure in test %zu/%zu", index, count);
-        int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, TEST_METHOD_ID, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+        int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, meth_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
 
         // assert
         ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);
