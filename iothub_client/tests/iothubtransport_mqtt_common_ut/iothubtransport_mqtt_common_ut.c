@@ -5276,7 +5276,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
         umock_c_negative_tests_fail_call(index);
 
         METHOD_ID meth_id = my_gballoc_malloc(sizeof(uint16_t) );
-
+        printf("************ meth_id %p ************\r\n", meth_id);
         char tmp_msg[128];
         sprintf(tmp_msg, "IoTHubTransport_MQTT_Common_DeviceMethod_Response failure in test %zu/%zu", index, count);
         int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, meth_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
