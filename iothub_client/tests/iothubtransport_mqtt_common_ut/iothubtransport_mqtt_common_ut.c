@@ -995,6 +995,8 @@ static void setup_message_recv_device_method_mocks()
         .IgnoreArgument_payLoad()
         .IgnoreArgument_size()
         .IgnoreArgument_response_id();
+    STRICT_EXPECTED_CALL(gballoc_free(IGNORED_PTR_ARG))
+        .IgnoreArgument_ptr();
     STRICT_EXPECTED_CALL(STRING_delete(IGNORED_PTR_ARG))
         .IgnoreArgument_handle();
 }
@@ -4080,7 +4082,7 @@ TEST_FUNCTION(IoTHubTransportMqtt_MessageRecv_device_method_fail)
 
     umock_c_negative_tests_snapshot();
 
-    size_t calls_cannot_fail[] = { 4, 5, 6, 7, 8, 9, 10, 13, 14 };
+    size_t calls_cannot_fail[] = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 15 };
 
     // act
     size_t count = umock_c_negative_tests_call_count();
@@ -5245,7 +5247,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_succeeds)
 }
 
 /* Tests_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_051: [ If any error is encountered, IoTHubTransport_MQTT_Common_DeviceMethod_Response shall return a non-zero value. ] */
-/*TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
+TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
 {
     // arrange
     int negativeTestsInitResult = umock_c_negative_tests_init();
@@ -5276,7 +5278,6 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_succeeds)
         umock_c_negative_tests_fail_call(index);
 
         METHOD_ID meth_id = my_gballoc_malloc(sizeof(uint16_t) );
-        printf("************ meth_id %p ************\r\n", meth_id);
         char tmp_msg[128];
         sprintf(tmp_msg, "IoTHubTransport_MQTT_Common_DeviceMethod_Response failure in test %zu/%zu", index, count);
         int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, meth_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
@@ -5288,6 +5289,6 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_succeeds)
     //cleanup
     IoTHubTransport_MQTT_Common_Destroy(handle);
     umock_c_negative_tests_deinit();
-}*/
+}
 
 END_TEST_SUITE(iothubtransport_mqtt_common_ut)

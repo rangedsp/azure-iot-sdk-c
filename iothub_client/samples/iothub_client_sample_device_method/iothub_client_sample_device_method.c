@@ -19,7 +19,7 @@
 /*String containing Hostname, Device Id & Device Key in the format:                         */
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessKey=<device_key>"                */
 /*  "HostName=<host_name>;DeviceId=<device_id>;SharedAccessSignature=<device_sas_token>"    */
-static const char* connectionString = "";
+static const char* connectionString = "HostName=iot-sdks-dm-s3.azure-devices.net;DeviceId=jebrandoDev2;SharedAccessKey=sdZ4KeP5wnaT2BdqlrnInFRYwBNj/9kYXnInNIfl+M8=";
 
 static char msgText[1024];
 static char propText[1024];
@@ -250,8 +250,8 @@ int main(void)
     {
         g_continueRunning = true;
 
-        //IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = MQTT_Protocol;
-        IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = AMQP_Protocol;
+        IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = MQTT_Protocol;
+        //IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = AMQP_Protocol;
 
         iothub_client_sample_device_method_threaded(transport_type);
         //iothub_client_sample_device_method(transport_type);
