@@ -99,7 +99,7 @@ extern void IoTHubTransport_MQTT_Common_Unregister(IOTHUB_DEVICE_HANDLE deviceHa
 
 This function is intended to remove a device as registered with the transport.  As there is only one IoT Hub Device per MQTT transport established on create, this function is a placeholder not intended to do meaningful work.
 
-**SRS_IOTHUB_TRANSPORT_MQTT_COMMON_17_005: [** `IoTHubTransport_MQTT_Common_Unregister` shall return. **]**  
+**SRS_IOTHUB_TRANSPORT_MQTT_COMMON_17_005: [** If deviceHandle is NULL `IoTHubTransport_MQTT_Common_Unregister` shall do nothing. **]**  
 
 
 ### IoTHubTransport_MQTT_Common_Subscribe_DeviceTwin
@@ -301,3 +301,20 @@ int IoTHubTransport_MQTT_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handl
 **SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_042: [** `IoTHubTransport_MQTT_Common_DeviceMethod_Response` shall publish an mqtt message for the device method response. **]**
 
 **SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_051: [** If any error is encountered, `IoTHubTransport_MQTT_Common_DeviceMethod_Response` shall return a non-zero value. **]**
+
+
+```c
+static void mqtt_notification_callback(MQTT_MESSAGE_HANDLE msgHandle, void* callbackCtx)
+```
+
+**SRS_IOTHUB_MQTT_TRANSPORT_07_051: [** If msgHandle or callbackCtx is NULL, `mqtt_notification_callback` shall do nothing. **]**
+
+**SRS_IOTHUB_MQTT_TRANSPORT_07_052: [** `mqtt_notification_callback` shall extract the topic Name from the MQTT_MESSAGE_HANDLE. **]**
+
+**SRS_IOTHUB_MQTT_TRANSPORT_07_054: [** If type is IOTHUB_TYPE_DEVICE_TWIN, then on success if msg_type is RETRIEVE_PROPERTIES then `mqtt_notification_callback` shall call IoTHubClient_LL_RetrievePropertyComplete... **]**
+
+**SRS_IOTHUB_MQTT_TRANSPORT_07_055: [** if device_twin_msg_type is not RETRIEVE_PROPERTIES then `mqtt_notification_callback` shall call IoTHubClient_LL_ReportedStateComplete **]**
+
+**SRS_IOTHUB_MQTT_TRANSPORT_07_053: [** If type is IOTHUB_TYPE_DEVICE_METHODS, then on success `mqtt_notification_callback` shall call IoTHubClient_LL_DeviceMethodComplete. **]** 
+
+**SRS_IOTHUB_MQTT_TRANSPORT_07_056: [** If type is IOTHUB_TYPE_TELEMETRY, then on success `mqtt_notification_callback` shall call IoTHubClient_LL_MessageCallback. **]**

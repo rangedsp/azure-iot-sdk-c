@@ -622,6 +622,8 @@ void on_methods_request_received(void* context, const char* method_name, const u
 
 **SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_017: [** `on_methods_request_received` shall call the `IoTHubClient_LL_DeviceMethodComplete` passing the method name, request buffer and size. **]**
 
+**SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_021: [** On failure, `on_methods_request_received` shall return a non-zero value. **]**
+
 ###IoTHubTransport_AMQP_Common_DeviceMethod_Response
 
 ```c

@@ -358,7 +358,7 @@ TEST_SUITE_INITIALIZE(TestClassInitialize)
     REGISTER_UMOCK_ALIAS_TYPE(ON_MESSAGE_SENDER_STATE_CHANGED, void*);
     REGISTER_UMOCK_ALIAS_TYPE(MESSAGE_SENDER_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(fields, void*);
-    REGISTER_UMOCK_ALIAS_TYPE(METHOD_ID, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(METHOD_ID_HANDLE, void*);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_free, my_gballoc_free);
@@ -1206,7 +1206,7 @@ TEST_FUNCTION(IoTHubTransport_AMQP_Common_DeviceMethod_Response_succeed)
     STRICT_EXPECTED_CALL(iothubtransportamqp_methods_respond(TEST_METHOD_HANDLE, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE));
 
     // act
-    int result = IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, (METHOD_ID)TEST_METHOD_HANDLE, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+    int result = IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, (METHOD_ID_HANDLE)TEST_METHOD_HANDLE, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -1242,7 +1242,7 @@ TEST_FUNCTION(IoTHubTransport_AMQP_Common_DeviceMethod_Response_fail)
         .SetReturn(__LINE__);
 
     // act
-    int result = IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, (METHOD_ID)TEST_METHOD_HANDLE, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+    int result = IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, TEST_METHOD_HANDLE, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
 
     // assert
     ASSERT_ARE_NOT_EQUAL(int, 0, result);

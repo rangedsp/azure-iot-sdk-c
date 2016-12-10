@@ -1454,10 +1454,10 @@ void IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE h
     }
 }
 
-int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
+int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t response_size, int status_response)
 {
     (void)response;
-    (void)resp_size;
+    (void)response_size;
     (void)status_response;
     int result;
     AMQP_TRANSPORT_DEVICE_STATE* device_state = (AMQP_TRANSPORT_DEVICE_STATE*)handle;
@@ -1466,7 +1466,7 @@ int IoTHubTransport_AMQP_Common_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handl
 #ifdef WIP_C2D_METHODS_AMQP /* This feature is WIP, do not use yet */
         IOTHUBTRANSPORT_AMQP_METHOD_HANDLE saved_handle = (IOTHUBTRANSPORT_AMQP_METHOD_HANDLE)methodId;
         /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_019: [ `IoTHubTransport_AMQP_Common_DeviceMethod_Response` shall call `iothubtransportamqp_methods_respond` passing to it the `method_handle` argument, the response bytes, response size and the status code. ]*/
-        if (iothubtransportamqp_methods_respond(saved_handle, response, resp_size, status_response) != 0)
+        if (iothubtransportamqp_methods_respond(saved_handle, response, response_size, status_response) != 0)
         {
             /* Codes_SRS_IOTHUBTRANSPORT_AMQP_COMMON_01_029: [ If `iothubtransportamqp_methods_respond` fails, `on_methods_request_received` shall return a non-zero value. ]*/
             LogError("iothubtransportamqp_methods_respond failed");

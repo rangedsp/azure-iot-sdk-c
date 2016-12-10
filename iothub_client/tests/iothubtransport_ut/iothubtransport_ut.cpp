@@ -260,7 +260,7 @@ public:
         *iotHubClientStatus = currentIotHubClientStatus;
         MOCK_METHOD_END(IOTHUB_CLIENT_RESULT, IOTHUB_CLIENT_OK)
 
-        MOCK_STATIC_METHOD_5(, int, FAKE_IoTHubTransport_DeviceMethod_Response, IOTHUB_DEVICE_HANDLE, handle, METHOD_ID, methodId, const unsigned char*, response, size_t, resp_size, int, status_response)
+        MOCK_STATIC_METHOD_5(, int, FAKE_IoTHubTransport_DeviceMethod_Response, IOTHUB_DEVICE_HANDLE, handle, METHOD_ID_HANDLE, methodId, const unsigned char*, response, size_t, resp_size, int, status_response)
         MOCK_METHOD_END(int, 0)
 
         MOCK_STATIC_METHOD_2(, void, eventConfirmationCallback, IOTHUB_CLIENT_CONFIRMATION_RESULT, result2, void*, userContextCallback)
@@ -403,7 +403,7 @@ DECLARE_GLOBAL_MOCK_METHOD_1(CIotHubTransportMocks, , void, FAKE_IoTHubTransport
 DECLARE_GLOBAL_MOCK_METHOD_2(CIotHubTransportMocks, , void, FAKE_IoTHubTransport_DoWork, TRANSPORT_LL_HANDLE, handle, IOTHUB_CLIENT_LL_HANDLE, iotHubClientHandle);
 DECLARE_GLOBAL_MOCK_METHOD_3(CIotHubTransportMocks, , int, FAKE_IoTHubTransport_SetRetryPolicy, TRANSPORT_LL_HANDLE, handle, IOTHUB_CLIENT_RETRY_POLICY, retryPolicy, size_t, retryTimeoutLimitInSeconds);
 DECLARE_GLOBAL_MOCK_METHOD_2(CIotHubTransportMocks, , IOTHUB_CLIENT_RESULT, FAKE_IoTHubTransport_GetSendStatus, TRANSPORT_LL_HANDLE, handle, IOTHUB_CLIENT_STATUS*, iotHubClientStatus);
-DECLARE_GLOBAL_MOCK_METHOD_5(CIotHubTransportMocks, , int, FAKE_IoTHubTransport_DeviceMethod_Response, IOTHUB_DEVICE_HANDLE, handle, METHOD_ID, methodId, const unsigned char*, response, size_t, resp_size, int, status_response);
+DECLARE_GLOBAL_MOCK_METHOD_5(CIotHubTransportMocks, , int, FAKE_IoTHubTransport_DeviceMethod_Response, IOTHUB_DEVICE_HANDLE, handle, METHOD_ID_HANDLE, methodId, const unsigned char*, response, size_t, resp_size, int, status_response);
 
 DECLARE_GLOBAL_MOCK_METHOD_2(CIotHubTransportMocks, , void, eventConfirmationCallback, IOTHUB_CLIENT_CONFIRMATION_RESULT, result2, void*, userContextCallback);
 
@@ -447,23 +447,23 @@ DECLARE_GLOBAL_MOCK_METHOD_1(CIotHubTransportMocks, , LOCK_RESULT, Lock_Deinit, 
 
 static TRANSPORT_PROVIDER FAKE_transport_provider =
 {
-    FAKE_IoTHubTransport_Subscribe_DeviceMethod,    /*pfIoTHubTransport_Subscribe_DeviceMethod IoTHubTransport_Subscribe_DeviceMethod;*/
-    FAKE_IoTHubTransport_Unsubscribe_DeviceMethod,  /*pfIoTHubTransport_Unsubscribe_DeviceMethod IoTHubTransport_Unsubscribe_DeviceMethod;*/
+    FAKE_IoTHubTransport_Subscribe_DeviceMethod,
+    FAKE_IoTHubTransport_Unsubscribe_DeviceMethod,
     FAKE_IoTHubTransport_DeviceMethod_Response,
-    FAKE_IoTHubTransport_Subscribe_DeviceTwin,      /*pfIoTHubTransport_Subscribe_DeviceTwin IoTHubTransport_Subscribe_DeviceTwin;*/
-    FAKE_IoTHubTransport_Unsubscribe_DeviceTwin,    /*pfIoTHubTransport_Unsubscribe_DeviceTwin IoTHubTransport_Unsubscribe_DeviceTwin;*/
-    FAKE_IoTHubTransport_ProcessItem,               /*pfIoTHubTransport_ProcessItem IoTHubTransport_ProcessItem;*/
-    FAKE_IoTHubTransport_GetHostname,               /*pfIoTHubTransport_GetHostname IoTHubTransport_GetHostname;*/
-    FAKE_IoTHubTransport_SetOption,                 /*pfIoTHubTransport_SetOption IoTHubTransport_SetOption;*/
-    FAKE_IoTHubTransport_Create,                    /*pfIoTHubTransport_Create IoTHubTransport_Create;*/
-    FAKE_IoTHubTransport_Destroy,                   /*pfIoTHubTransport_Destroy IoTHubTransport_Destroy;*/
-    FAKE_IoTHubTransport_Register,		            /*pfIotHubTransport_Register IoTHubTransport_Register;*/
-    FAKE_IoTHubTransport_Unregister,                /*pfIotHubTransport_Unregister IoTHubTransport_Unegister;*/
-    FAKE_IoTHubTransport_Subscribe,                 /*pfIoTHubTransport_Subscribe IoTHubTransport_Subscribe;*/
-    FAKE_IoTHubTransport_Unsubscribe,               /*pfIoTHubTransport_Unsubscribe IoTHubTransport_Unsubscribe;*/
-    FAKE_IoTHubTransport_DoWork,                    /*pfIoTHubTransport_DoWork IoTHubTransport_DoWork;*/
-    FAKE_IoTHubTransport_SetRetryPolicy,            /*pfIoTHubTransport_DoWork IoTHubTransport_SetRetryPolicy;      */
-    FAKE_IoTHubTransport_GetSendStatus              /*pfIoTHubTransport_GetSendStatus IoTHubTransport_GetSendStatus;*/
+    FAKE_IoTHubTransport_Subscribe_DeviceTwin,
+    FAKE_IoTHubTransport_Unsubscribe_DeviceTwin,
+    FAKE_IoTHubTransport_ProcessItem,
+    FAKE_IoTHubTransport_GetHostname,
+    FAKE_IoTHubTransport_SetOption,
+    FAKE_IoTHubTransport_Create,
+    FAKE_IoTHubTransport_Destroy,
+    FAKE_IoTHubTransport_Register,
+    FAKE_IoTHubTransport_Unregister,
+    FAKE_IoTHubTransport_Subscribe,
+    FAKE_IoTHubTransport_Unsubscribe,
+    FAKE_IoTHubTransport_DoWork,
+    FAKE_IoTHubTransport_SetRetryPolicy,
+    FAKE_IoTHubTransport_GetSendStatus
 };
 
 static const TRANSPORT_PROVIDER* provideFAKE(void)

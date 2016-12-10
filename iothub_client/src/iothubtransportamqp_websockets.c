@@ -79,9 +79,9 @@ static void IoTHubTransportAMQP_WS_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE
     IoTHubTransport_AMQP_Common_Unsubscribe_DeviceMethod(handle);
 }
 
-static int IoTHubTransportAMQP_WS_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
+static int IoTHubTransportAMQP_WS_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t response_size, int status_response)
 {
-    return IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, methodId, response, resp_size, status_response);
+    return IoTHubTransport_AMQP_Common_DeviceMethod_Response(handle, methodId, response, response_size, status_response);
 }
 
 static IOTHUB_CLIENT_RESULT IoTHubTransportAMQP_WS_GetSendStatus(IOTHUB_DEVICE_HANDLE handle, IOTHUB_CLIENT_STATUS *iotHubClientStatus)

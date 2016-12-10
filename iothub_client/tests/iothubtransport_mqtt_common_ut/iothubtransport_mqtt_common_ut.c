@@ -152,7 +152,7 @@ static size_t g_tokenizerIndex;
 static const unsigned char* TEST_DEVICE_METHOD_RESPONSE = (const unsigned char*)0x62;
 static size_t TEST_DEVICE_RESP_LENGTH = 1;
 static size_t TEST_METHOD_ID_VALUE = 12;
-static METHOD_ID TEST_METHOD_ID = &TEST_METHOD_ID_VALUE;
+static METHOD_ID_HANDLE TEST_METHOD_ID = &TEST_METHOD_ID_VALUE;
 
 #define TEST_TIME_T ((time_t)-1)
 #define TEST_DIFF_TIME TEST_DIFF_TIME_POSITIVE
@@ -502,7 +502,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(IOTHUB_CLIENT_CONNECTION_STATUS_REASON, unsigned int);
     REGISTER_UMOCK_ALIAS_TYPE(IOTHUB_CLIENT_RETRY_POLICY, int);
     REGISTER_UMOCK_ALIAS_TYPE(time_t, uint64_t);
-    REGISTER_UMOCK_ALIAS_TYPE(METHOD_ID, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(METHOD_ID_HANDLE, void*);
 
     REGISTER_GLOBAL_MOCK_HOOK(gballoc_malloc, my_gballoc_malloc);
     REGISTER_GLOBAL_MOCK_FAIL_RETURN(gballoc_malloc, NULL);
@@ -3663,6 +3663,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MqttOpCompleteCallback_PUBLISH_ACK_suc
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_051: [ If msgHandle or callbackCtx is NULL, mqtt_notification_callback shall do nothing. ] */
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_message_NULL_fail)
 {
     // arrange
@@ -3684,6 +3685,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_message_NULL_fail)
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_051: [ If msgHandle or callbackCtx is NULL, mqtt_notification_callback shall do nothing. ] */
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_context_NULL_fail)
 {
     // arrange
@@ -3705,6 +3707,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_context_NULL_fail)
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_051: [ If msgHandle or callbackCtx is NULL, mqtt_notification_callback shall do nothing. ] */
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_Message_context_NULL_fail)
 {
     // arrange
@@ -3726,6 +3729,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_Message_context_NULL_fail)
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_056: [ If type is IOTHUB_TYPE_TELEMETRY, then on success mqtt_notification_callback shall call IoTHubClient_LL_MessageCallback. ] */
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_succeed)
 {
     // arrange
@@ -3749,6 +3753,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_succeed)
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_055: [ if device_twin_msg_type is not RETRIEVE_PROPERTIES then mqtt_notification_callback shall call IoTHubClient_LL_ReportedStateComplete ] */
 TEST_FUNCTION(IoTHubTransportMqtt_MessageRecv_device_twin_succeed)
 {
     // arrange
@@ -3854,6 +3859,7 @@ TEST_FUNCTION(IoTHubTransportMqtt_MessageRecv_device_twin_fail)
     umock_c_negative_tests_deinit();
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_054: [ If type is IOTHUB_TYPE_DEVICE_TWIN, then on success if msg_type is RETRIEVE_PROPERTIES then mqtt_notification_callback shall call IoTHubClient_LL_RetrievePropertyComplete... ]*/
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_with_sys_Properties_succeed)
 {
     // arrange
@@ -3900,6 +3906,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_with_sys_Properties_succee
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_054: [ If type is IOTHUB_TYPE_DEVICE_TWIN, then on success if msg_type is RETRIEVE_PROPERTIES then mqtt_notification_callback shall call IoTHubClient_LL_RetrievePropertyComplete... ]*/
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_with_Properties_succeed)
 {
     // arrange
@@ -3924,6 +3931,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_with_Properties_succeed)
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_054: [ If type is IOTHUB_TYPE_DEVICE_TWIN, then on success if msg_type is RETRIEVE_PROPERTIES then mqtt_notification_callback shall call IoTHubClient_LL_RetrievePropertyComplete... ]*/
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_with_Properties_fail)
 {
     // arrange
@@ -3968,6 +3976,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_with_Properties_fail)
     umock_c_negative_tests_deinit();
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_054: [ If type is IOTHUB_TYPE_DEVICE_TWIN, then on success if msg_type is RETRIEVE_PROPERTIES then mqtt_notification_callback shall call IoTHubClient_LL_RetrievePropertyComplete... ]*/
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_messagecallback_ABANDONED_fail)
 {
     // arrange
@@ -4004,6 +4013,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_messagecallback_ABANDONED_
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_054: [ If type is IOTHUB_TYPE_DEVICE_TWIN, then on success if msg_type is RETRIEVE_PROPERTIES then mqtt_notification_callback shall call IoTHubClient_LL_RetrievePropertyComplete... ]*/
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_messagecallback_REJECTED_fail)
 {
     // arrange
@@ -4040,6 +4050,7 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_MessageRecv_messagecallback_REJECTED_f
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_053: [ If type is IOTHUB_TYPE_DEVICE_METHODS, then on success mqtt_notification_callback shall call IoTHubClient_LL_DeviceMethodComplete. ] */
 TEST_FUNCTION(IoTHubTransportMqtt_MessageRecv_device_method_succeed)
 {
     // arrange
@@ -4064,6 +4075,7 @@ TEST_FUNCTION(IoTHubTransportMqtt_MessageRecv_device_method_succeed)
     IoTHubTransport_MQTT_Common_Destroy(handle);
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_053: [ If type is IOTHUB_TYPE_DEVICE_METHODS, then on success mqtt_notification_callback shall call IoTHubClient_LL_DeviceMethodComplete. ] */
 TEST_FUNCTION(IoTHubTransportMqtt_MessageRecv_device_method_fail)
 {
     // arrange
@@ -5209,7 +5221,6 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_ProcessItem_fail)
 TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_handle_NULL_fail)
 {
     // arrange
-    umock_c_reset_all_calls();
 
     // act
     int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(NULL, TEST_METHOD_ID, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
@@ -5233,10 +5244,35 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_succeeds)
 
     setup_devicemethod_response_mocks();
 
-    METHOD_ID meth_id = my_gballoc_malloc(sizeof(uint16_t) );
+    METHOD_ID_HANDLE method_id = my_gballoc_malloc(sizeof(uint16_t) );
 
     // act
-    int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, meth_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+    int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, method_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+
+    // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
+    ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
+
+    //cleanup
+    IoTHubTransport_MQTT_Common_Destroy(handle);
+}
+
+/* Tests_SRS_IOTHUB_TRANSPORT_MQTT_COMMON_07_042: [ IoTHubTransport_MQTT_Common_DeviceMethod_Response shall publish an mqtt message for the device method response. ] */
+TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_NULL_RESPONSE_succeeds)
+{
+    // arrange
+    IOTHUBTRANSPORT_CONFIG config = { 0 };
+    SetupIothubTransportConfig(&config, TEST_DEVICE_ID, TEST_DEVICE_KEY, TEST_IOTHUB_NAME, TEST_IOTHUB_SUFFIX, TEST_PROTOCOL_GATEWAY_HOSTNAME);
+
+    TRANSPORT_LL_HANDLE handle = IoTHubTransport_MQTT_Common_Create(&config, get_IO_transport);
+    umock_c_reset_all_calls();
+
+    setup_devicemethod_response_mocks();
+
+    METHOD_ID_HANDLE method_id = my_gballoc_malloc(sizeof(uint16_t) );
+
+    // act
+    int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, method_id, NULL, 0, TEST_DEVICE_STATUS_CODE);
 
     // assert
     ASSERT_ARE_EQUAL(int, 0, result);
@@ -5265,7 +5301,6 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
 
     size_t calls_cannot_fail[] = { 0, 3, 4, 5 };
 
-    // act
     size_t count = umock_c_negative_tests_call_count();
     for (size_t index = 0; index < count; index++)
     {
@@ -5277,10 +5312,12 @@ TEST_FUNCTION(IoTHubTransport_MQTT_Common_DeviceMethod_Response_fail)
         umock_c_negative_tests_reset();
         umock_c_negative_tests_fail_call(index);
 
-        METHOD_ID meth_id = my_gballoc_malloc(sizeof(uint16_t) );
+        METHOD_ID_HANDLE method_id = my_gballoc_malloc(sizeof(uint16_t) );
         char tmp_msg[128];
-        sprintf(tmp_msg, "IoTHubTransport_MQTT_Common_DeviceMethod_Response failure in test %zu/%zu", index, count);
-        int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, meth_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
+        (void)sprintf(tmp_msg, "IoTHubTransport_MQTT_Common_DeviceMethod_Response failure in test %zu/%zu", index, count);
+
+        // act
+        int result = IoTHubTransport_MQTT_Common_DeviceMethod_Response(handle, method_id, TEST_DEVICE_METHOD_RESPONSE, TEST_DEVICE_RESP_LENGTH, TEST_DEVICE_STATUS_CODE);
 
         // assert
         ASSERT_ARE_NOT_EQUAL_WITH_MSG(int, 0, result, tmp_msg);

@@ -65,7 +65,7 @@ static TEST_MUTEX_HANDLE g_dllByDll;
 #define TEST_RETRY_TIMEOUT_SECS 60
 
 #define TEST_DEVICE_STATUS_CODE             200
-#define TEST_METHOD_ID                      (METHOD_ID)0x61
+#define TEST_METHOD_ID                      (METHOD_ID_HANDLE)0x61
 static const unsigned char* TEST_DEVICE_METHOD_RESPONSE = (const unsigned char*)0x62;
 
 //Callbacks for Testing
@@ -125,7 +125,7 @@ TEST_SUITE_INITIALIZE(suite_init)
     REGISTER_UMOCK_ALIAS_TYPE(IOTHUB_DEVICE_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(TRANSPORT_LL_HANDLE, void*);
     REGISTER_UMOCK_ALIAS_TYPE(IOTHUB_CLIENT_RETRY_POLICY, int);
-    REGISTER_UMOCK_ALIAS_TYPE(METHOD_ID, void*);
+    REGISTER_UMOCK_ALIAS_TYPE(METHOD_ID_HANDLE, void*);
 
     REGISTER_GLOBAL_MOCK_HOOK(IoTHubTransport_MQTT_Common_Create, my_IoTHubTransport_MQTT_Common_Create);
 
@@ -325,6 +325,7 @@ TEST_FUNCTION(IoTHubTransportMqtt_SetRetryPolicy_success)
 
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_026: [ IoTHubTransportMqtt_Subscribe_DeviceMethod shall subscribe the TRANSPORT_LL_HANDLE by calling into the IoTHubMqttAbstract_Subscribe_DeviceMethod function. ] */
 TEST_FUNCTION(IoTHubTransportMqtt_Subscribe_DeviceTwin_success)
 {
     // arrange
@@ -345,6 +346,7 @@ TEST_FUNCTION(IoTHubTransportMqtt_Subscribe_DeviceTwin_success)
     //cleanup
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_024: [ IoTHubTransportMqtt_Unsubscribe_DeviceTwin shall shall call into the IoTHubMqttAbstract_Unsubscribe_DeviceTwin function. ] */
 TEST_FUNCTION(IoTHubTransportMqtt_Unsubscribe_DeviceTwin_success)
 {
     // arrange
@@ -529,6 +531,7 @@ TEST_FUNCTION(IoTHubTransportMqtt_Unregister_success)
     //cleanup
 }
 
+/* Tests_SRS_IOTHUB_MQTT_TRANSPORT_07_023: [ IoTHubTransportMqtt_DeviceMethod_Response shall call into the IoTHubMqttAbstract_DeviceMethod_Response function. ] */
 TEST_FUNCTION(IoTHubTransportMqtt_DeviceMethod_Response_success)
 {
     // arrange
@@ -536,9 +539,10 @@ TEST_FUNCTION(IoTHubTransportMqtt_DeviceMethod_Response_success)
     // act
     STRICT_EXPECTED_CALL(IoTHubTransport_MQTT_Common_DeviceMethod_Response(TEST_DEVICE_HANDLE, TEST_METHOD_ID, TEST_DEVICE_METHOD_RESPONSE, 1, TEST_DEVICE_STATUS_CODE));
 
-    IoTHubTransportMqtt_DeviceMethod_Response(TEST_DEVICE_HANDLE, TEST_METHOD_ID, TEST_DEVICE_METHOD_RESPONSE, 1, TEST_DEVICE_STATUS_CODE);
+    int result = IoTHubTransportMqtt_DeviceMethod_Response(TEST_DEVICE_HANDLE, TEST_METHOD_ID, TEST_DEVICE_METHOD_RESPONSE, 1, TEST_DEVICE_STATUS_CODE);
 
     // assert
+    ASSERT_ARE_EQUAL(int, 0, result);
     ASSERT_ARE_EQUAL(char_ptr, umock_c_get_expected_calls(), umock_c_get_actual_calls());
 
     //cleanup

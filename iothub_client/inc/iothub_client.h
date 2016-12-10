@@ -310,7 +310,7 @@ extern "C"
     *
     * @return	IOTHUB_CLIENT_OK upon success or an error code upon failure.
     */
-    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClient_SetIncomingDeviceMethodCallback, IOTHUB_CLIENT_HANDLE, iotHubClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK, inboundDeviceMethodCallback, void*, userContextCallback);
+    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClient_SetDeviceMethodCallback_Ex, IOTHUB_CLIENT_HANDLE, iotHubClientHandle, IOTHUB_CLIENT_INBOUND_DEVICE_METHOD_CALLBACK, inboundDeviceMethodCallback, void*, userContextCallback);
 
 
     /**
@@ -319,12 +319,12 @@ extern "C"
     * @param	iotHubClientHandle      The handle created by a call to the create function.
     * @param	methodId                The methodId of the Device Method callback.
     * @param	response                The response data for the method callback.
-    * @param	resp_size               The size of the response data buffer.
+    * @param	response_size           The size of the response data buffer.
     * @param	status_response         The status response of the method callback.
     *
     * @return	IOTHUB_CLIENT_OK upon success or an error code upon failure.
     */
-    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClient_DeviceMethodResponse, IOTHUB_CLIENT_HANDLE, iotHubClientHandle, METHOD_ID, methodId, const unsigned char*, response, size_t, respSize, int, statusCode);
+    MOCKABLE_FUNCTION(, IOTHUB_CLIENT_RESULT, IoTHubClient_DeviceMethodResponse, IOTHUB_CLIENT_HANDLE, iotHubClientHandle, METHOD_ID_HANDLE, methodId, const unsigned char*, response, size_t, response_size, int, statusCode);
 
 #ifndef DONT_USE_UPLOADTOBLOB
     /**

@@ -42,7 +42,7 @@ static void SendConfirmationCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, v
     IoTHubMessage_Destroy(messageHandle);
 }
 
-static int ll_incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
+static int ll_incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID_HANDLE method_id, void* userContextCallback)
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = (IOTHUB_CLIENT_LL_HANDLE)userContextCallback;
 
@@ -83,7 +83,7 @@ static int ll_incoming_method_callback(const char* method_name, const unsigned c
     return result;
 }
 
-static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID method_id, void* userContextCallback)
+static int incoming_method_callback(const char* method_name, const unsigned char* payload, size_t size, METHOD_ID_HANDLE method_id, void* userContextCallback)
 {
     IOTHUB_CLIENT_HANDLE iotHubClientHandle = (IOTHUB_CLIENT_HANDLE)userContextCallback;
 
@@ -148,7 +148,7 @@ static int DeviceMethodCallback(const char* method_name, const unsigned char* pa
     return status;
 }
 
-void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type)
+void iothub_client_sample_device_method(IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type)
 {
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle;
 
@@ -169,14 +169,34 @@ void iothub_client_sample_device_method_sync(IOTHUB_CLIENT_TRANSPORT_PROVIDER tr
         }
 #endif // MBED_BUILD_TIMESTAMP
 
-        //if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
-        if (IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientHandle, ll_incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        if (IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        //if (IoTHubClient_LL_SetIncomingDeviceMethodCallback(iotHubClientHandle, ll_incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
         {
             (void)printf("ERROR: IoTHubClient_LL_SetDeviceMethodCallback..........FAILED!\r\n");
         }
         else
         {
             (void)printf("IoTHubClient_LL_SetDeviceMethodCallback...successful.\r\n");
+
+            do
+            {
+                IoTHubClient_LL_DoWork(iotHubClientHandle);
+                ThreadAPI_Sleep(1);
+            } while (g_continueRunning);
+
+            g_continueRunning = true;
+
+            printf("**** Unsubscribing\r\n");
+            (void)IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, NULL, NULL);
+
+                for (int j = 0; j < 6000; j++)
+                {
+                    IoTHubClient_LL_DoWork(iotHubClientHandle);
+                    ThreadAPI_Sleep(10);
+                }
+
+            printf("**** Resubscribing\r\n");
+            IoTHubClient_LL_SetDeviceMethodCallback(iotHubClientHandle, DeviceMethodCallback, (void*)iotHubClientHandle);
 
             do
             {
@@ -219,7 +239,7 @@ void iothub_client_sample_device_method_threaded(IOTHUB_CLIENT_TRANSPORT_PROVIDE
         }
 #endif // MBED_BUILD_TIMESTAMP
 
-        if (IoTHubClient_SetIncomingDeviceMethodCallback(iotHubClientHandle, incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
+        if (IoTHubClient_SetDeviceMethodCallback_Ex(iotHubClientHandle, incoming_method_callback, (void*)iotHubClientHandle) != IOTHUB_CLIENT_OK)
         {
             (void)printf("ERROR: IoTHubClient_SetDeviceMethodCallback..........FAILED!\r\n");
         }
@@ -253,8 +273,8 @@ int main(void)
         IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = MQTT_Protocol;
         //IOTHUB_CLIENT_TRANSPORT_PROVIDER transport_type = AMQP_Protocol;
 
-        iothub_client_sample_device_method_threaded(transport_type);
-        //iothub_client_sample_device_method(transport_type);
+        //iothub_client_sample_device_method_threaded(transport_type);
+        iothub_client_sample_device_method(transport_type);
         platform_deinit();
     }
     return 0;

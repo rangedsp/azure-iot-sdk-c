@@ -943,12 +943,12 @@ static void IoTHubTransportHttp_Unsubscribe_DeviceMethod(IOTHUB_DEVICE_HANDLE ha
     LogError("not implemented (yet)");
 }
 
-static int IoTHubTransportHttp_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID methodId, const unsigned char* response, size_t resp_size, int status_response)
+static int IoTHubTransportHttp_DeviceMethod_Response(IOTHUB_DEVICE_HANDLE handle, METHOD_ID_HANDLE methodId, const unsigned char* response, size_t response_size, int status_response)
 {
     (void)handle;
     (void)methodId;
     (void)response;
-    (void)resp_size;
+    (void)response_size;
     (void)status_response;
     LogError("not implemented (yet)");
     return __LINE__;
